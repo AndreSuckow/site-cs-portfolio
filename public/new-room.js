@@ -1,0 +1,227 @@
+// Novo Quarto 3D — original geometry and textures inspired by André's room reference.
+// The interactive TV and console retain their original world coordinates.
+export function createNewRoom(T){
+ const {Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,Material,CanvasTexture,SRGB}=T;
+ const root=new Group();root.name='Novo Quarto 3D';
+ const boxGeometry=new BoxGeometry(1,1,1),planeGeometry=new PlaneGeometry(1,1);
+ const materials=new Map(),resources=[boxGeometry,planeGeometry];
+ let seed=3421;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ function texture(draw,width=512,height=512){
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  draw(canvas.getContext('2d'),width,height);
+  const map=new CanvasTexture(canvas);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);return map;
+ }
+ function material(color,map=null){
+  const key=`${color}/${map?.uuid||''}`;if(materials.has(key))return materials.get(key);
+  const value=new Material({color,map,roughness:.86,metalness:0});materials.set(key,value);return value;
+ }
+ const woodMap=texture((c,w,h)=>{
+  c.fillStyle='#a49a80';c.fillRect(0,0,w,h);
+  for(let i=0;i<1400;i++){const x=random()*w;c.strokeStyle=`rgba(${random()>.5?'43,27,12':'214,187,133'},${.04+random()*.14})`;c.lineWidth=.4+random()*1.8;c.beginPath();c.moveTo(x,0);for(let y=0;y<=h;y+=12)c.lineTo(x+Math.sin(y*.018+i)*(.5+random()*2.5),y);c.stroke();}
+ });
+ const oak=material('#ded6ba',woodMap),darkOak=material('#b0a080',woodMap),endWood=material('#685d46'),cream=material('#d9d5bd'),trim=material('#b7b39a'),gold=material('#8b6b34'),black=material('#25251e');
+ function box(name,x,y,z,w,h,d,mat,parent=root){const mesh=new Mesh(boxGeometry,mat);mesh.name=name;mesh.position.set(x,y,z);mesh.scale.set(w,h,d);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;}
+ function plane(name,x,y,z,w,h,mat,rotation=[0,0,0],parent=root){const mesh=new Mesh(planeGeometry,mat);mesh.name=name;mesh.position.set(x,y,z);mesh.scale.set(w,h,1);mesh.rotation.set(...rotation);mesh.receiveShadow=true;parent.add(mesh);return mesh;}
+ function geometry(name,positions,uv,indices,mat,parent=root){const geo=new BufferGeometry();geo.setAttribute('position',new BufferAttribute(new Float32Array(positions),3));geo.setAttribute('uv',new BufferAttribute(new Float32Array(uv),2));geo.setIndex(indices);geo.computeVertexNormals();resources.push(geo);const mesh=new Mesh(geo,mat);mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;}
+ function cylinder(name,x,y,z,radius,height,mat,segments=12,parent=root){
+  const pos=[],uv=[],indices=[];
+  for(let j=0;j<=1;j++)for(let i=0;i<=segments;i++){const angle=i/segments*Math.PI*2;pos.push(Math.cos(angle)*radius,(j-.5)*height,Math.sin(angle)*radius);uv.push(i/segments,j);}
+  for(let i=0;i<segments;i++){const a=i,b=i+segments+1;indices.push(a,b,a+1,a+1,b,b+1);}
+  for(const top of [false,true]){const center=pos.length/3;pos.push(0,(top?.5:-.5)*height,0);uv.push(.5,.5);const offset=top?segments+1:0;for(let i=0;i<segments;i++)indices.push(center,offset+(top?i+1:i),offset+(top?i:i+1));}
+  const mesh=geometry(name,pos,uv,indices,mat,parent);mesh.position.set(x,y,z);return mesh;
+ }
+ function ellipsoid(name,x,y,z,rx,ry,rz,mat,parent=root){
+  const pos=[],uv=[],indices=[],nx=20,ny=10;
+  const round=value=>Math.sign(value)*Math.abs(value)**.55;
+  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const a=i/nx*Math.PI*2,b=j/ny*Math.PI;pos.push(round(Math.cos(a))*Math.sin(b)**.55*rx,round(Math.cos(b))*ry,round(Math.sin(a))*Math.sin(b)**.55*rz);uv.push(i/nx,j/ny);}
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i,b=a+nx+1;indices.push(a,a+1,b,a+1,b+1,b);}
+  const mesh=geometry(name,pos,uv,indices,mat,parent);mesh.position.set(x,y,z);return mesh;
+ }
+ const floorMap=texture((c,w,h)=>{
+  c.fillStyle='#463624';c.fillRect(0,0,w,h);const tile=64;
+  for(let y=0;y<h;y+=tile)for(let x=0;x<w;x+=tile){
+   const vertical=(x/tile+y/tile)%2===0;
+   for(let i=0;i<4;i++){
+    c.save();c.translate(x+tile/2,y+tile/2);if(vertical)c.rotate(Math.PI/2);
+    c.fillStyle=['#826039','#a07b49','#b48c51','#947042'][Math.floor(random()*4)];c.fillRect(-31,-31+i*16,62,14);
+    for(let n=0;n<8;n++){c.strokeStyle=n%2?'#ffffff12':'#1d160e2e';c.beginPath();c.moveTo(-28,-30+i*16+random()*12);c.lineTo(28,-30+i*16+random()*12);c.stroke();}c.restore();
+   }
+  }
+ },1024,1024);
+ box('Raised cutaway foundation',-.25,-.065,.37,3.85,.13,3.4,trim);
+ plane('Parquet floor',-.25,.006,.37,3.72,3.28,material('#ffffff',floorMap),[-Math.PI/2,0,0]);
+ box('Back wall',-.25,1.05,-1.31,3.85,2.1,.085,cream);
+ // Four pieces leave a real opening in the right wall for the window.
+ box('Right wall rear',1.64,1.05,-1.12,.085,2.1,.4,cream);
+ box('Right wall front',1.64,1.05,1.15,.085,2.1,1.82,cream);
+ box('Wall below window',1.64,.31,-.32,.085,.62,1.17,cream);
+ box('Wall above window',1.64,1.91,-.32,.085,.38,1.17,cream);
+ box('Rear skirting',-.25,.055,-1.252,3.76,.1,.035,endWood);
+ box('Side skirting',1.585,.055,.37,.035,.1,3.25,endWood);
+ // The desk top stays at y=.5, supporting the existing interactive models.
+ box('Desk top',.18,.475,-.99,1.85,.05,.55,darkOak);
+ box('Desk left side',-.72,.245,-1,.05,.46,.51,oak);
+ box('Desk right side',1.08,.245,-1,.05,.46,.51,oak);
+ box('Drawer pedestal',.73,.24,-1,.5,.44,.49,oak);
+ for(let i=0;i<3;i++){
+  box('Desk drawer',.73,.12+i*.13,-.743,.46,.12,.025,oak);
+  box('Desk drawer handle',.73,.12+i*.13,-.723,.085,.012,.016,black);
+ }
+ // Wardrobe with inset panels, open center niche and suitcases above it.
+ const wx=-1.45,wz=-1.02;
+ box('Wardrobe back',wx,.85,-1.26,1.05,1.64,.035,darkOak);
+ for(const side of [-1,1]){
+  box('Wardrobe side',wx+side*.51,.85,wz,.035,1.64,.52,darkOak);
+  box('Niche divider',wx+side*.18,.99,wz,.022,.78,.5,darkOak);
+ }
+ box('Wardrobe top',wx,1.69,wz,1.1,.055,.56,endWood);
+ for(const side of [-1,1]){
+  const x=wx+side*.35;
+  box('Tall wardrobe door',x,.77,-.746,.325,1.38,.035,oak);
+  box('Door inner panel',x,.77,-.724,.267,1.25,.008,darkOak);
+  box('Wardrobe handle',x-side*.1,.8,-.704,.016,.12,.024,black);
+ }
+ box('Center niche shadow',wx,.97,-1.237,.32,.49,.01,material('#342b20'));
+ box('Center niche base',wx,.72,-1,.36,.035,.5,oak);
+ box('Book inside wardrobe',wx+.01,.755,-.86,.19,.025,.12,material('#56705a'));
+ box('Book pages',wx+.01,.755,-.795,.17,.015,.004,material('#d2cba7'));
+ for(let i=0;i<3;i++){
+  box('Wardrobe center drawer',wx,.24+i*.155,-.736,.33,.142,.028,oak);
+  box('Drawer pull',wx,.24+i*.155,-.713,.09,.014,.018,black);
+ }
+ for(let i=0;i<3;i++){
+  box('Upper wardrobe door',wx+(i-1)*.35,1.47,-.741,.33,.36,.034,oak);
+  box('Upper door pull',wx+(i-1)*.35+.09,1.33,-.71,.045,.013,.02,black);
+ }
+ const leather=material('#4a2d1e'),cardboard=material('#baa77f');
+ box('Leather suitcase',wx-.2,1.79,-1,.56,.16,.35,leather);
+ const lid=box('Leaning suitcase',wx-.13,1.99,-1.12,.52,.065,.36,leather);lid.rotation.x=.86;
+ box('Suitcase brass handle',wx-.2,1.8,-.807,.13,.03,.035,gold);
+ for(const side of [-1,1])box('Suitcase clasp',wx-.2+side*.19,1.8,-.806,.035,.035,.015,gold);
+ box('Cardboard storage box',wx+.31,1.81,-1.03,.34,.22,.32,cardboard);
+ const flap=box('Open cardboard flap',wx+.31,1.95,-1.12,.35,.012,.2,cardboard);flap.rotation.x=-.35;
+ // Chair beside the desk, with its low curved-looking back made from wooden rails.
+ const chair=new Group();chair.position.set(.03,0,-.35);chair.rotation.y=-.16;root.add(chair);
+ box('Chair seat',0,.29,0,.3,.045,.3,oak,chair);
+ for(const x of [-.115,.115])for(const z of [-.115,.115])box('Chair leg',x,.14,z,.035,.28,.035,darkOak,chair);
+ for(const x of [-.115,.115])box('Chair upright',x,.49,-.12,.032,.4,.032,darkOak,chair);
+ box('Chair back',0,.59,-.12,.27,.09,.03,oak,chair);
+ function clothMap(plaid){return texture((c,w,h)=>{
+  c.fillStyle=plaid?'#283d36':'#bca074';c.fillRect(0,0,w,h);
+  for(let i=0;i<22000;i++){c.fillStyle=random()>.5?'#ffffff0e':'#0000000b';c.fillRect(random()*w,random()*h,1,2);}
+  if(plaid){
+   for(let i=-w;i<w*2;i+=76){c.fillStyle='#18302988';c.fillRect(i,0,20,h);c.fillRect(0,i,w,20);c.fillStyle='#d1ab51';c.fillRect(i+24,0,3,h);c.fillRect(0,i+24,w,3);c.fillStyle='#ddd1ae';c.fillRect(i+40,0,2,h);c.fillRect(0,i+40,w,2);}
+  }else{
+   c.strokeStyle='#eee2bf';c.lineWidth=2;
+   for(let i=-h;i<w+h;i+=65){c.beginPath();c.moveTo(i,0);c.lineTo(i+h,h);c.stroke();c.beginPath();c.moveTo(i,0);c.lineTo(i-h,h);c.stroke();}
+  }
+ });}
+ function bed(name,cx,cz,plaid){
+  const parent=new Group();parent.name=name;parent.position.set(cx,0,cz);root.add(parent);
+  const w=.88,l=1.68;
+  box('Bed frame',0,.24,0,w,.11,l,darkOak,parent);
+  box('Mattress',0,.36,0,w-.035,.17,l-.02,material('#d6d2b9'),parent);
+  for(const x of [-w/2+.025,w/2-.025])for(const z of [-l/2,l/2]){
+   box('Bed post',x,.32,z,.065,.64,.065,oak,parent);
+   box('Post cap',x,.665,z,.09,.055,.09,darkOak,parent);
+  }
+  for(const z of [-l/2,l/2]){
+   box('Headboard rail',0,.6,z,w,.055,.05,oak,parent);
+   box('Headboard base',0,.36,z,w,.065,.05,darkOak,parent);
+   for(let i=0;i<5;i++)box('Headboard spindle',-.31+i*.155,.48,z,.045,.24,.035,oak,parent);
+  }
+  const pos=[],uv=[],indices=[],nx=24,nz=36;
+  for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){
+   const x=(i/nx-.5)*(w+.16),z=(j/nz-.5)*(l-.1)+.11;
+   const edge=Math.max(0,(Math.abs(x)-w*.38)/(.5*(w+.16)-w*.38));
+   const front=Math.max(0,(z-l*.35)/(.6-l*.35+.3));
+   const y=.465+Math.sin(x*26+z*9)*.014+Math.sin(z*18)*.007-edge*edge*.19-Math.max(0,front)*.04;
+   pos.push(x,y,z);uv.push(i/nx,j/nz);
+  }
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i,b=a+nx+1;indices.push(a,b,a+1,a+1,b,b+1);}
+  geometry('Draped woven blanket',pos,uv,indices,material('#ffffff',clothMap(plaid)),parent);
+  const pillow=ellipsoid('Soft pillow',0,.51,-.56,.32,.075,.18,material('#eee9d1'),parent);pillow.rotation.y=plaid?.07:-.12;
+ }
+ bed('Front plaid bed',-.91,1.05,true);
+ bed('Window bed',.99,.54,false);
+ box('Bedside bench',.19,.24,1.65,.58,.065,.25,darkOak);
+ for(const x of [-.02,.4])for(const z of [1.57,1.73])box('Bench leg',x,.12,z,.035,.24,.035,oak);
+ // Window: dark glass, frames and wooden shutters on the right wall.
+ const sky=material('#192323');
+ plane('Night outside window',1.668,1.16,-.32,1.15,1.08,sky,[0,-Math.PI/2,0]);
+ for(const z of [-.91,.27])box('Window jamb',1.57,1.16,z,.085,1.16,.055,darkOak);
+ for(const y of [.59,1.74])box('Window lintel',1.57,y,-.32,.085,.055,1.23,darkOak);
+ box('Window sill',1.52,.58,-.32,.23,.045,1.32,oak);
+ for(const z of [-.72,.08]){
+  box('Shutter frame',1.535,1.16,z,.05,1.03,.32,darkOak);
+  for(let i=0;i<10;i++)box('Shutter slat',1.5,.71+i*.092,z,.027,.055,.26,oak);
+ }
+ box('Window center divider',1.515,1.16,-.32,.055,1.1,.035,oak);
+ if(T.posterImage){
+  const map=new CanvasTexture(T.posterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
+  plane('Donkey Kong Country 3 poster',-.52,1.58,-1.259,.27,.27*T.posterImage.height/T.posterImage.width,material('#ffffff',map));
+ }
+ if(T.turtlesPosterImage){
+  const map=new CanvasTexture(T.turtlesPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
+  plane('Turtles III The Manhattan Project poster',-.13,1.64,-1.258,.3,.3*T.turtlesPosterImage.height/T.turtlesPosterImage.width,material('#ffffff',map));
+ }
+ // Small collection above the TV.
+ box('TV floating shelf',-.17,1.246,-1.08,.91,.035,.26,darkOak);
+ box('Shelf bracket left',-.51,1.19,-1.22,.025,.1,.03,endWood);
+ box('Shelf bracket right',.17,1.19,-1.22,.025,.1,.03,endWood);
+ const red=material('#b63f2a'),green=material('#5c9231'),blue=material('#305c83'),skin=material('#d2ab70');
+ function figure(x,y,z,shirt){
+  box('Collectible body',x,y+.035,z,.03,.045,.025,shirt);box('Collectible head',x,y+.07,z,.027,.027,.027,skin);
+  box('Collectible cap',x,y+.088,z,.04,.012,.03,shirt);
+  for(const sign of [-1,1])box('Collectible shoe',x+sign*.012,y+.008,z+.008,.019,.018,.03,blue);
+ }
+ figure(-.44,1.265,-1.04,green);figure(-.31,1.265,-1.04,red);
+ cylinder('Green pipe stem',-.12,1.31,-1.08,.035,.09,green);cylinder('Green pipe rim',-.12,1.355,-1.08,.047,.025,green);
+ function fan(x,y,z,side=false){
+  const group=new Group();group.position.set(x,y,z);if(side)group.rotation.y=-Math.PI/2;root.add(group);
+  cylinder('Fan base',0,.008,0,.035,.015,red,12,group);cylinder('Fan stand',0,.06,0,.008,.11,red,8,group);
+  const head=cylinder('Fan circular housing',0,.135,0,.048,.018,red,16,group);head.rotation.x=Math.PI/2;
+  for(let i=0;i<4;i++){const blade=box('Fan blade',0,.135,.014,.057,.009,.005,material('#e19464'),group);blade.rotation.z=i*Math.PI/2+.3;}
+ }
+ fan(.12,1.265,-1.08);
+ // Right shelf, books and posters.
+ box('Window-side shelf',1.45,1.01,.83,.29,.035,.86,darkOak);
+ const bookColors=['#b34b30','#a39a6c','#44716c','#d2bc79','#544f47','#9b6548'];
+ for(let i=0;i<10;i++){
+  const z=.5+i*.053,h=.12+random()*.06;box('Book spine',1.42,1.03+h/2,z,.13,h,.043,material(bookColors[i%bookColors.length]));
+  box('Book label',1.346,1.03+h*.7,z,.003,.008,.025,material('#d7c8a1'));
+ }
+ if(T.twistedMetalPosterImage){
+  const map=new CanvasTexture(T.twistedMetalPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
+  plane('Twisted Metal poster',1.589,1.47,.62,.32,.32*T.twistedMetalPosterImage.height/T.twistedMetalPosterImage.width,material('#ffffff',map),[0,-Math.PI/2,0]);
+ }
+ if(T.marioWorldPosterImage){
+  const map=new CanvasTexture(T.marioWorldPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
+  plane('Super Mario World poster',1.588,1.47,1.09,.3,.3*T.marioWorldPosterImage.height/T.marioWorldPosterImage.width,material('#ffffff',map),[0,-Math.PI/2,0]);
+ }
+ fan(1.43,1.03,1.17,true);
+ cylinder('Mug',-.57,.55,-.91,.032,.072,material('#c5c8ad'));
+ // Soft contact shadows supplement the real directional shadows on smaller devices.
+ const ao=texture((c,w,h)=>{const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'#00000066');g.addColorStop(1,'#00000000');c.fillStyle=g;c.fillRect(0,0,w,h);},128,128);
+ const aoMat=new T.BasicMaterial({map:ao,transparent:true,depthWrite:false});resources.push(aoMat);
+ for(const [x,z,w,l] of [[-.91,1.05,1.25,2.1],[.99,.54,1.25,2.1],[-1.45,-1,1.3,.9],[.2,-1,2.2,.8]])plane('Furniture contact shadow',x,.012,z,w,l,aoMat,[-Math.PI/2,0,0]);
+ root.updateMatrixWorld(true);
+ // Bake static transforms and batch matching surfaces to keep the room affordable on phones.
+ const batches=new Map();let partCount=0;
+ root.traverse(mesh=>{
+  if(!mesh.isMesh)return;partCount++;
+  const key=`${mesh.material.uuid}/${mesh.castShadow}/${mesh.receiveShadow}`;
+  if(!batches.has(key))batches.set(key,{material:mesh.material,castShadow:mesh.castShadow,receiveShadow:mesh.receiveShadow,positions:[],normals:[],uvs:[]});
+  const batch=batches.get(key),geo=mesh.geometry.index?mesh.geometry.toNonIndexed():mesh.geometry.clone();
+  geo.applyMatrix4(mesh.matrixWorld);
+  batch.positions.push(geo.attributes.position.array.slice());batch.normals.push(geo.attributes.normal.array.slice());batch.uvs.push(geo.attributes.uv.array.slice());geo.dispose();
+ });
+ root.clear();
+ const join=chunks=>{const array=new Float32Array(chunks.reduce((sum,chunk)=>sum+chunk.length,0));let offset=0;for(const chunk of chunks){array.set(chunk,offset);offset+=chunk.length;}return array;};
+ for(const batch of batches.values()){
+  const geo=new BufferGeometry();geo.setAttribute('position',new BufferAttribute(join(batch.positions),3));geo.setAttribute('normal',new BufferAttribute(join(batch.normals),3));geo.setAttribute('uv',new BufferAttribute(join(batch.uvs),2));resources.push(geo);
+  const mesh=new Mesh(geo,batch.material);mesh.name='Static room surfaces';mesh.castShadow=batch.castShadow;mesh.receiveShadow=batch.receiveShadow;root.add(mesh);
+ }
+ root.userData={version:'novo-quarto-3d',parts:partCount,batches:batches.size};
+ return {root,dispose(){for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
+}

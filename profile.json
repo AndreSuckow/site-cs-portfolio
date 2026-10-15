@@ -1,0 +1,286 @@
+{
+  "name": "André Luis Suckow",
+  "shortName": "André Suckow",
+  "role": "CS & Onboarding",
+  "roleLong": "Especialista em Customer Success e Onboarding",
+  "location": "Campo Largo – PR",
+  "available": true,
+  "availability": "Disponível para novos projetos e oportunidades",
+  "email": "andre.suckow.dev@gmail.com",
+  "phone": "+55 (41) 99583-0758",
+  "whatsapp": "https://wa.me/5541995830758",
+  "cvPdf": "/curriculo-andre-suckow.pdf",
+  "photo": "/img/andre-pixel.png",
+  "headline": "O sucesso do cliente começa quando ele encontra valor — e continua quando escolhe ficar.",
+  "intro": "Sou André Luis Suckow, especialista em Customer Success, onboarding e implantação de software SaaS. Acompanho clientes desde os primeiros passos até o uso consistente do produto, com escuta, orientação e foco em retenção.",
+  "bio": [
+    "Atuo na jornada do cliente, no onboarding e na implantação de plataformas SaaS. Realizava treinamentos, orientava usuários e acompanhava a adoção do produto para transformar dúvidas em autonomia.",
+    "Construía relações de confiança, identificava dificuldades e articulava soluções com Produto e Suporte, contribuindo para a retenção e a redução de churn."
+  ],
+  "mission": "Ouvir para entender. Orientar para gerar valor. Acompanhar para que o cliente escolha ficar.",
+  "missionShort": "Ouvir para entender. Orientar para gerar valor. Acompanhar para que o cliente escolha ficar.",
+  "stats": [
+    {
+      "label": "Customer Success",
+      "value": 5,
+      "description": "Acompanhava a jornada do cliente, identificava necessidades e orientava o uso do produto para gerar valor."
+    },
+    {
+      "label": "Onboarding",
+      "value": 5,
+      "description": "Conduzia os primeiros passos do cliente, configurava a solução e orientava a equipe até o início da operação."
+    },
+    {
+      "label": "Implantação SaaS",
+      "value": 4,
+      "description": "Implantava e parametrizava o software conforme a rotina e as necessidades de cada empresa."
+    },
+    {
+      "label": "Retenção / churn",
+      "value": 4,
+      "description": "Identificava riscos de cancelamento (churn), tratava dificuldades e acompanhava clientes para fortalecer a permanência (retenção)."
+    },
+    {
+      "label": "Treinamentos",
+      "value": 5,
+      "description": "Realizava treinamentos individuais e coletivos, explicava processos e capacitava usuários para usar a plataforma com autonomia."
+    }
+  ],
+  "experience": [
+    {
+      "id": "marq",
+      "phase": "Fase 1",
+      "title": "A jornada do cliente",
+      "role": "Analista de Onboarding / Customer Success",
+      "org": "MarQPonto · atual Marq HR",
+      "period": "Jan 2018 – Jan 2021",
+      "start": 2018,
+      "summary": "Onboarding e adoção de uma plataforma SaaS de controle de ponto.",
+      "bullets": [
+        "Implantação, parametrização e capacitação de novos clientes.",
+        "Mais de 300 empresas treinadas, com alguns treinamentos reunindo mais de 30 participantes.",
+        "Suporte consultivo e iniciativas de redução de churn e retenção."
+      ],
+      "logo": "/img/marqhr-logo.svg"
+    },
+    {
+      "id": "pilgrims",
+      "phase": "Fase 2",
+      "title": "Missão de implantação",
+      "role": "Analista de Sistemas Pleno (N2)",
+      "org": "Pilgrim’s",
+      "period": "Dez 2025 – Jul 2026",
+      "start": 2025,
+      "summary": "Implantação e onboarding de uma plataforma de gestão logística para e-commerce.",
+      "bullets": [
+        "Implantação da plataforma junto às empresas clientes.",
+        "Treinamento de usuários e materiais de orientação.",
+        "Interface com Produto e equipe técnica, gestão de tickets e devolutivas consultivas."
+      ],
+      "logo": "/img/pilgrims-logo.webp"
+    },
+    {
+      "id": "next",
+      "phase": "Fase 3",
+      "title": "A próxima missão",
+      "role": "Customer Success na sua companhia",
+      "org": "Sua companhia",
+      "period": "O próximo capítulo",
+      "invitation": true,
+      "summary": "Uma oportunidade para construir novas jornadas de sucesso.",
+      "bullets": [
+        "Quero contribuir com o onboarding, a adoção e a retenção dos seus clientes.",
+        "Vamos conversar sobre os desafios de Customer Success da sua companhia."
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "onboarding",
+      "name": "Onboarding",
+      "color": 5,
+      "skills": [
+        {
+          "name": "Implantação SaaS",
+          "note": "Conduzia os primeiros passos da operação, da configuração da plataforma à orientação dos usuários."
+        },
+        {
+          "name": "Parametrização",
+          "note": "Traduzia jornadas, escalas e regras de cada empresa em configurações para o dia a dia."
+        },
+        {
+          "name": "Orientar/realizar treinamentos",
+          "note": "Mais de 300 empresas treinadas, com alguns treinamentos reunindo mais de 30 participantes."
+        },
+        {
+          "name": "Materiais de apoio",
+          "note": "Elaborava orientações sobre normas de ponto coletivo e rotinas da plataforma para apoiar os clientes."
+        },
+        {
+          "name": "Adoção de produto",
+          "note": "Identificava dificuldades e orientava o cliente para transformar acesso à plataforma em uso no dia a dia."
+        },
+        {
+          "name": "Gestão de tickets",
+          "note": "Reproduzia o bug, capturava o print e documentava o card antes de reportar a Produto e Desenvolvimento."
+        }
+      ]
+    },
+    {
+      "id": "cs",
+      "name": "Customer Success",
+      "color": 9,
+      "skills": [
+        {
+          "name": "Jornada do cliente",
+          "note": "Acompanhava o cliente dos primeiros passos ao uso cotidiano, em conjunto com suporte e demais áreas."
+        },
+        {
+          "name": "Suporte consultivo",
+          "note": "Entendia a rotina da empresa para orientar o uso da plataforma de acordo com suas necessidades."
+        },
+        {
+          "name": "Stakeholders",
+          "note": "Conectava clientes, Produto e equipe técnica para alinhar necessidades e acompanhar melhorias."
+        },
+        {
+          "name": "Comunicação",
+          "note": "Explicava processos para públicos diferentes, dos atendimentos individuais aos grupos com mais de 30 pessoas."
+        },
+        {
+          "name": "Resiliência",
+          "note": "Mantinha clareza no fechamento de ponto e agilidade em chamados urgentes de operações de e-commerce."
+        },
+        {
+          "name": "Retenção",
+          "note": "Atuava na redução de churn, ajudando o cliente a superar dificuldades e aproveitar melhor o sistema."
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "name": "Outras Habilidades",
+      "color": 15,
+      "skills": [
+        {
+          "name": "Produto",
+          "note": "Colaborava na primeira equipe de CS da MarQ: dois profissionais construindo a base do atendimento."
+        },
+        {
+          "name": "Suporte remoto",
+          "note": "Orientava clientes por telefone, WhatsApp e chamadas, aproximando o suporte de quem precisava."
+        },
+        {
+          "name": "Desenvolvimento",
+          "note": "Construí este portfólio com minhas habilidades de frontend e apoio de inteligência artificial."
+        }
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ads",
+      "icon": "scroll",
+      "title": "Graduado",
+      "text": "Análise e Desenvolvimento de Sistemas · Estácio de Sá · 2019–2021"
+    },
+    {
+      "id": "training",
+      "icon": "book",
+      "title": "Orientar/realizar treinamentos",
+      "text": "Mais de 300 empresas treinadas, com alguns treinamentos reunindo mais de 30 participantes."
+    }
+  ],
+  "projects": [
+    {
+      "slug": "onboarding",
+      "cartTitle": "ONBOARDING",
+      "title": "Onboarding de clientes",
+      "subtitle": "MarQPonto · atual Marq HR",
+      "status": "done",
+      "statusLabel": "Experiência profissional",
+      "summary": "Implantação e parametrização de uma plataforma SaaS de controle de ponto, com capacitação de usuários e acompanhamento da adoção.",
+      "stack": [
+        "SaaS",
+        "Onboarding",
+        "Customer Success"
+      ],
+      "labelArt": "/img/marqhr-logo.svg",
+      "shellColor": "#3A3D44",
+      "labelColor": "#C8642A",
+      "screenColor": 10,
+      "demoUrl": "https://marqhr.com/",
+      "screenshot": {
+        "src": "/img/marqhr-site.png",
+        "width": 1426,
+        "height": 900,
+        "alt": "Site da MarQ HR"
+      },
+      "caseStory": "Fiz parte da primeira equipe de Customer Success da MarQPonto, atual MarQ HR. Na época, éramos apenas dois profissionais na posição de CS e a empresa tinha menos de sete pessoas entre funcionários e sócios. Realizava onboarding, implantação, treinamentos e acompanhamento dos clientes, contribuindo para construir a base do sucesso que a empresa tem hoje. Atualmente, a MarQ HR conta com mais de 40 funcionários em tempo integral.",
+      "labelArtIsLogo": true,
+      "labelAlt": "Logo da MarQ HR",
+      "company": "MarQPonto · atual MarQ HR",
+      "mission": "Onboarding de clientes e sucesso do cliente"
+    },
+    {
+      "slug": "implantacao",
+      "cartTitle": "IMPLANTAÇÃO",
+      "title": "Implantação de software SaaS",
+      "subtitle": "Pilgrim’s · 2025–2026",
+      "status": "done",
+      "statusLabel": "Gestão logística",
+      "summary": "Onboarding de uma plataforma de logística para e-commerce. Implantação junto a clientes, treinamento de usuários e interface com Produto e equipe técnica.",
+      "stack": [
+        "SaaS",
+        "Treinamento",
+        "Produto",
+        "Suporte N2"
+      ],
+      "labelArt": "/img/pilgrims-logo.webp",
+      "shellColor": "#C9C6BF",
+      "labelColor": "#1F2550",
+      "screenColor": 4,
+      "demoUrl": "https://pilgrimsconsulting.com.br/",
+      "screenshot": {
+        "src": "/img/pilgrims-site.png",
+        "width": 1328,
+        "height": 664,
+        "alt": "Site da Pilgrims Consulting"
+      },
+      "company": "Pilgrims Consulting",
+      "mission": "Onboarding de clientes e sucesso do cliente",
+      "labelArtIsLogo": true,
+      "labelAlt": "Logo da Pilgrims Consulting"
+    }
+  ],
+  "linkedin": "https://www.linkedin.com/in/andresuckow/",
+  "church": {
+    "name": "Torre Forte Church Campo Largo",
+    "url": "https://www.instagram.com/tf.church/"
+  },
+  "hobbies": [
+    {
+      "title": "Fé em Cristo",
+      "text": "Minha fé em Cristo faz parte de quem sou. Frequento a Torre Forte Church Campo Largo, onde cultivo minha fé e a convivência em comunidade.",
+      "url": "https://www.instagram.com/tf.church/",
+      "action": "Conhecer a igreja"
+    },
+    {
+      "title": "Jogos online",
+      "text": "Gosto de jogar online, compartilhar partidas e me conectar com amigos."
+    },
+    {
+      "title": "Futebol",
+      "text": "Campo, society ou salão: gosto de estar em quadra, jogar em equipe e aproveitar uma boa partida."
+    },
+    {
+      "title": "Academia",
+      "text": "Treinar faz parte da minha rotina de cuidado com a saúde e disciplina."
+    },
+    {
+      "title": "Praia",
+      "text": "Gosto de ir à praia, descansar e aproveitar o tempo ao ar livre."
+    }
+  ],
+  "roomVersion": "novo-quarto-3d"
+}

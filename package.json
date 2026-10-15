@@ -1,0 +1,23 @@
+{
+  "name": "andre-suckow-curriculo-game",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Portfólio de Customer Success de André Suckow em quarto 3D, com alternativa 2D e formulário de contato.",
+  "scripts": {
+    "dev": "node server.mjs",
+    "build": "node build.mjs",
+    "room:new": "node room-version.mjs new",
+    "room:previous": "node room-version.mjs previous",
+    "check": "node check.mjs",
+    "test": "node --test skills-modal.test.mjs range.test.mjs cs-portfolio.test.mjs contact.test.mjs mobile-reading.test.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.0.11",
+    "adm-zip": "^0.6.1",
+    "fast-xml-parser": "^5.11.2",
+    "jsdom": "^30.1.2",
+    "pdfjs-dist": "^6.4.299",
+    "pdfkit": "^0.20.2"
+  }
+}

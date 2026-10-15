@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import {spawnSync} from 'node:child_process';
+const versions={new:'novo-quarto-3d',previous:'classic'};
+const requested=process.argv[2];
+if(!versions[requested])throw Error('Use: node room-version.mjs new|previous');
+const profile=JSON.parse(fs.readFileSync('profile.json','utf8'));
+profile.roomVersion=versions[requested];
+fs.writeFileSync('profile.json',JSON.stringify(profile,null,2)+'\n');
+const result=spawnSync(process.execPath,['build.mjs'],{stdio:'inherit'});
+if(result.status!==0)process.exit(result.status||1);
+console.log(requested==='new'?'Novo Quarto 3D ativado.':'Quarto anterior restaurado; conteúdo e funcionalidades preservados.');

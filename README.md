@@ -1,0 +1,40 @@
+# Portfólio de André Luis Suckow
+
+Portfólio de Customer Success e Onboarding, com quarto 3D, TV interativa e alternativa 2D. Inclui Sobre, Experiência, Projetos, Skills, Hobbies, Contato e encerramento com Game Over.
+
+## Executar e verificar
+
+Requer Node.js 22 ou superior.
+
+```powershell
+npm install
+npm run dev
+npm run build
+npm run check
+npm test
+```
+
+O site abre em http://localhost:4173/. O build regenera o conteúdo e substitui `dist/` para impedir a permanência de arquivos antigos.
+
+## Fontes mantidas
+
+O **Novo Quarto 3D** usa um cenário criado em código a partir da referência enviada. A abertura mostra o quarto por cima e o scroll aproxima a câmera da TV. Para trocar somente o ambiente, use `npm run room:previous` (quarto anterior) ou `npm run room:new` (novo quarto). O checkpoint completo antes dessa implementação está em `.checkpoints/antes-novo-quarto-3d.zip`.
+
+- `profile.json`: conteúdo profissional, contatos e hobbies.
+- `skill-details.json`: explicações e relatos das habilidades de CS.
+- `src/portfolio.html`, `src/boot.js`, `src/engine.js`: fontes do portfólio e do motor 3D adaptado.
+- `customize.cjs` e `cs-portfolio.cjs`: geração de HTML, dados da TV e estudos de caso.
+- `public/`: scripts, estilos, fontes, modelos e imagens usados pelo site.
+- `documents/curriculo-original.docx`: documento original preservado. `create-cv-pdf.mjs` permite regenerar e verificar o PDF; imagens de verificação vão para `tmp/`.
+
+O som do quarto é sintetizado pelo motor. Não há trilhas ou vídeos externos no projeto.
+
+## E-mail
+
+O formulário envia diretamente pelo FormSubmit para andre.suckow.dev@gmail.com, sem backend ou chave de API. Siga [EMAIL-SETUP.md](EMAIL-SETUP.md) para confirmar a ativação.
+
+## Verificação visual
+
+`node verify-portfolio.mjs` verifica a TV, tooltips, Hobbies, Game Over, reinício e o modo móvel em Chrome. `node verify-contact.mjs` verifica o formulário com respostas simuladas, sem enviar e-mails reais. No ambiente isolado, a opção `GAME_TEST_NO_SANDBOX=1` é aceita somente para a origem local.
+
+Veja [CREDITS.md](CREDITS.md) para a origem do motor e dos assets.
