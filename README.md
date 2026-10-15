@@ -16,6 +16,28 @@ npm test
 
 O site abre em http://localhost:4173/. O build regenera o conteúdo e substitui `dist/` para impedir a permanência de arquivos antigos.
 
+## Publicar no GitHub Pages
+
+O workflow `.github/workflows/pages.yml` verifica e publica o site a cada push para `main`. Nas configurações do repositório, Pages deve usar **GitHub Actions**. O endereço previsto é https://andresuckow.github.io/site-cs-portfolio/.
+
+Após concluir uma alteração local, envie-a pelo painel de Controle de Código-Fonte do VS Code (commit e sincronização), ou pelo terminal:
+
+```powershell
+git add .
+git commit -m "Descreva a alteração"
+git push
+```
+
+O GitHub executa build, verificações e testes antes de atualizar o site. A publicação leva alguns minutos; salvar um arquivo local, por si só, não altera o site publicado. O status aparece na aba Actions do repositório.
+
+Para gerar o build com os mesmos caminhos do Pages no PowerShell:
+
+```powershell
+$env:SITE_BASE_PATH='/site-cs-portfolio/'
+npm run build
+Remove-Item Env:SITE_BASE_PATH
+```
+
 ## Fontes mantidas
 
 O **Novo Quarto 3D** usa um cenário criado em código a partir da referência enviada. A abertura mostra o quarto por cima e o scroll aproxima a câmera da TV. Para trocar somente o ambiente, use `npm run room:previous` (quarto anterior) ou `npm run room:new` (novo quarto). O checkpoint completo antes dessa implementação está em `.checkpoints/antes-novo-quarto-3d.zip`.
