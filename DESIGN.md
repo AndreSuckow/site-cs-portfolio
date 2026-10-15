@@ -18,6 +18,8 @@ Game Over reutiliza `dialog` e a apresentação dos modais. Continue ocorre some
 
 ## Fontes do projeto
 
+A imagem inicial e o fundo 2D do novo quarto usam `public/img/room-new-wide.webp`, capturada com a câmera de abertura do cenário real. A prévia de baixa resolução vem da mesma captura. O modo clássico mantém sua imagem anterior, acompanhando `profile.json.roomVersion`.
+
 **Novo Quarto 3D:** cenário original modelado em `public/new-room.js` a partir da referência enviada por André: duas camas, guarda-roupa com malas, piso de tacos, janela de madeira, escrivaninha, livros e colecionáveis. A câmera começa acima do quarto e desce com o scroll até o enquadramento anterior da TV, mantendo as coordenadas e interações do console. As superfícies estáticas são agrupadas por material e as texturas são geradas localmente. `profile.json.roomVersion` controla essa versão. `npm run room:previous` restaura o cenário anterior; `npm run room:new` reativa o novo. O checkpoint completo anterior está em `.checkpoints/antes-novo-quarto-3d.zip`.
 
 `public/audio-controller.js` mantém um único contexto de áudio para a TV 3D e os controles HTML nos dois modos. Movimentação e seleção têm efeitos curtos; o botão de som permanece disponível em 2D e 3D e respeita a preferência salva de mudo. O áudio é retomado nas interações permitidas pelo navegador, sem acumular efeitos enquanto o contexto está suspenso.

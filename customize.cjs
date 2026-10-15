@@ -9,6 +9,13 @@ const csPortfolio=require('./cs-portfolio.cjs');
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 for(const branch of p.skills)for(const skill of branch.skills)if(!skillDetails[skill.name]?.definition||!skillDetails[skill.name]?.experiences?.length)throw Error(`Missing skill explanation: ${skill.name}`);
 let html=fs.readFileSync('src/portfolio.html','utf8');
+const heroRoomImage=p.roomVersion==='novo-quarto-3d'?'/img/room-new-wide.webp':'/img/room-wide.webp';
+if(p.roomVersion==='novo-quarto-3d'){
+ const preview=fs.readFileSync('public/img/room-new-preview.webp').toString('base64');
+ html=html.replace('/img/room-wide.webp',heroRoomImage)
+  .replace(/url\(data:image\/webp;base64,[^)]+\)/,`url(data:image/webp;base64,${preview})`);
+}
+html=html.replace('fetchpriority="low"','fetchpriority="high"');
 function replaceSection(id,content){
  const start=html.indexOf(`<section id="${id}"`);if(start<0)throw Error(`Section not found: ${id}`);
  const tags=/<section\b[^>]*>|<\/section>/g;tags.lastIndex=start;let depth=0,end=-1;
@@ -28,7 +35,7 @@ let engine=fs.readFileSync('src/engine.js','utf8');
 function replaceData(name,next,data){const start=engine.indexOf(`${name}=`),end=engine.indexOf(`,${next}=`,start);if(start<0||end<0)throw Error(`Data boundary missing: ${name}`);engine=engine.slice(0,start)+`${name}=${JSON.stringify(data)}`+engine.slice(end);}
 const {experience:xp,skills:sk,achievements:ac,projects:pr,...person}=p;
 replaceData('Eh','Dh',person);replaceData('Dh','Oh',xp);replaceData('Oh','kh',sk);replaceData('kh','Ah',ac);replaceData('Ah','jh',pr);
-const assetSizes=Object.fromEntries(['/models/room.glb','/models/props.glb','/models/tv.glb','/models/console.glb','/models/cartridge.glb','/textures/room.webp','/textures/room-tv.webp',p.photo,'/img/room-wide.webp'].map(x=>[x,fs.statSync('public'+x).size]));
+const assetSizes=Object.fromEntries(['/models/room.glb','/models/props.glb','/models/tv.glb','/models/console.glb','/models/cartridge.glb','/textures/room.webp','/textures/room-tv.webp',p.photo,heroRoomImage].map(x=>[x,fs.statSync('public'+x).size]));
 engine=engine.replace(/t_=\{[^}]*\}/,'t_='+JSON.stringify(assetSizes));
 fs.writeFileSync('public/engine.js',versionRuntime(engine));
 const page = (title,body)=>`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} · André Suckow</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/custom.css"></head><body class="document-page"><main class="container"><nav class="document-actions"><a class="btn" href="/">← Voltar ao jogo</a><button class="btn" onclick="window.print()">Imprimir / salvar PDF</button><a class="btn btn--primary" download href="${p.cvPdf}">Baixar PDF</a></nav>${body}<footer><p>André Suckow · ${p.email}</p></footer></main></body></html>`;
