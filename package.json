@@ -10,7 +10,7 @@
     "room:new": "node room-version.mjs new",
     "room:previous": "node room-version.mjs previous",
     "check": "node check.mjs",
-    "test": "node --test skills-modal.test.mjs range.test.mjs cs-portfolio.test.mjs contact.test.mjs mobile-reading.test.mjs"
+    "test": "node --test skills-modal.test.mjs range.test.mjs cs-portfolio.test.mjs contact.test.mjs mobile-reading.test.mjs room-discoveries.test.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.11",

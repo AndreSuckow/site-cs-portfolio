@@ -14,13 +14,14 @@ test('WhatsApp greeting uses Sao Paulo time at the morning, afternoon and evenin
 test('CS content uses verified contacts and treats Sua companhia as an invitation',()=>{
  const dom=new JSDOM(html),d=dom.window.document;
  assert.equal(d.querySelectorAll('.phase').length,3);assert(d.querySelectorAll('.phase')[2].textContent.includes('Sua companhia'));
- assert(!/Front.end|React|TypeScript|WordPress/.test(d.body.textContent));
+ assert(!/Front.end|React|TypeScript|WordPress/.test(d.querySelector('#inicio').textContent));
+ assert(d.querySelector('#skills').textContent.includes('Desenvolvimento Front-end'));
  assert(d.querySelector('#sobre').textContent.includes('Campo Largo – PR'));
  assert(d.querySelector('#sobre a[href="https://www.linkedin.com/in/andresuckow/"]'));
  assert(d.querySelector('#sobre a[href="mailto:andre.suckow.dev@gmail.com"]'));
  assert.equal(d.querySelectorAll('#inicio .hero__actions .btn').length,3);
  assert(d.querySelector('#inicio a[href="https://www.linkedin.com/in/andresuckow/"]'));
- assert.equal(d.querySelectorAll('[data-pad="a"], [data-pad="b"]').length,0);
+ assert.equal(d.querySelectorAll('[data-pad="a"], [data-pad="b"]').length,2);
  assert.equal(d.querySelectorAll('.attribute__trigger').length,5);
  for(const button of d.querySelectorAll('.attribute__trigger'))assert(d.getElementById(button.getAttribute('aria-describedby')).textContent.length>40);
  assert(d.querySelector('#hobbies a[href="https://www.instagram.com/tf.church/"]'));

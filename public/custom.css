@@ -81,3 +81,113 @@
  html[data-mode="3d"][data-mobile-reading] .dock__label{display:none}
  html[data-mode="3d"][data-mobile-reading] .hud__chapter{display:none}
 }
+.snes-pad{--snes-shell:#c9c8d0;--snes-purple:#60409b;--snes-lilac:#b9ace3;--snes-dark:#34333b}
+html[data-mode="3d"] .dock.snes-pad:not([hidden]){display:none!important;grid-template-columns:136px 172px 136px;gap:8px 18px;inset:auto auto max(12px,env(safe-area-inset-bottom)) 50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);padding:18px 24px 12px;border:2px solid #929099;border-radius:72px;background:var(--snes-shell);color:var(--snes-dark);box-shadow:inset 0 3px 2px #fff9,inset 0 -5px 2px #0002,0 12px 32px #0006;pointer-events:auto}
+.snes-pad .dock__dpad{grid-template:repeat(3,44px)/repeat(3,44px);gap:0;align-items:center}
+.snes-pad button{cursor:pointer;transition:filter .15s,box-shadow .15s}
+.snes-pad button:hover{filter:brightness(1.15)}
+.snes-pad button:focus-visible{outline:3px solid #fff;outline-offset:3px;box-shadow:0 0 0 6px var(--snes-purple)}
+.snes-pad .dock__dpad button{height:44px;width:44px;border:1px solid #17171b;border-radius:4px;background:var(--snes-dark);color:#f4f1fa;font-size:18px}
+.snes-pad .dock__dpad [data-pad="up"]{grid-area:1/2;height:44px}
+.snes-pad .dock__dpad [data-pad="left"]{grid-area:2/1}
+.snes-pad .dock__dpad [data-pad="right"]{grid-area:2/3}
+.snes-pad .dock__dpad [data-pad="down"]{grid-area:3/2;height:44px}
+.snes-pad .dock__dpad:after{content:"";grid-area:2/2;width:44px;height:44px;background:var(--snes-dark)}
+.snes-pad__center{text-align:center;align-self:center}
+.snes-pad__brand{font:italic 800 15px/1 Arial,sans-serif;letter-spacing:-.7px;margin:0 0 8px}
+.snes-pad .dock__label{margin:0 0 16px;color:var(--snes-dark);font-size:13px}
+.snes-pad__system{display:flex;justify-content:center;gap:12px}
+.snes-pad .snes-pad__system button{position:relative;width:60px;height:44px;border:0;background:transparent;color:var(--snes-dark);font:italic 700 10px Arial}
+.snes-pad__system button:before{content:"";position:absolute;width:32px;height:12px;top:5px;left:12px;border-radius:8px;background:var(--snes-dark);transform:rotate(-35deg);box-shadow:inset 0 2px 1px #fff3,0 2px 2px #0005}
+.snes-pad__system span{position:absolute;bottom:0;left:0;right:0}
+.snes-pad__face{display:grid;grid-template:repeat(3,44px)/repeat(3,44px);gap:0;border-radius:50%;background:#aaa7b4}
+.snes-pad .snes-pad__face button{height:44px;width:44px;border:2px solid #8e80a9;border-radius:50%;font:bold 19px Arial;box-shadow:inset 0 2px 2px #fff7,0 3px 2px #0004}
+.snes-pad [data-pad="x"]{grid-area:1/2;background:var(--snes-lilac);color:#302745}
+.snes-pad [data-pad="y"]{grid-area:2/1;background:var(--snes-lilac);color:#302745}
+.snes-pad [data-pad="a"]{grid-area:2/3;background:var(--snes-purple);color:#fff}
+.snes-pad [data-pad="b"]{grid-area:3/2;background:var(--snes-purple);color:#fff}
+.snes-pad__hint{grid-column:1/-1;text-align:center;font:11px/1.4 Inter,sans-serif;margin:0}
+.pause-modal{text-align:center;width:min(460px,calc(100vw - 32px))}
+.pause-modal h2{font:700 42px 'Pixelify Sans',monospace;color:var(--amber-400);margin:16px 0}
+.pause-modal p{line-height:1.7}.pause-modal .btn{margin:16px auto;min-height:48px}
+html[data-paused="true"]{overflow:hidden}
+@media(max-width:700px),(max-height:600px){
+ html[data-mode="3d"] .dock.snes-pad:not([hidden]){grid-template-columns:132px minmax(100px,136px) 132px;gap:0 8px;padding:8px 14px;border-radius:60px}
+ .snes-pad__hint{display:none}.snes-pad__brand{font-size:12px}.snes-pad .dock__label{margin-bottom:4px}
+}
+@media(max-width:470px){html[data-mode="3d"] .dock.snes-pad:not([hidden]){grid-template-columns:132px 70px 132px;gap:0;padding:6px;border-radius:48px}.snes-pad__brand{display:none}.snes-pad__system{gap:0;flex-direction:column;align-items:center}.snes-pad .dock__label{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.snes-pad button{transition:none}}
+@media(max-width:370px){
+ html[data-mode="3d"] .dock.snes-pad:not([hidden]){grid-template-columns:132px 132px;column-gap:8px}
+ .snes-pad__center{grid-column:1/-1;grid-row:2}.snes-pad__system{flex-direction:row}.snes-pad__face{grid-column:2;grid-row:1}
+}
+html[data-mode="3d"][data-mobile-reading] .dock.snes-pad:not([hidden]){display:block!important;inset:0;transform:none;width:100%;max-width:none;height:100%;padding:0;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none}
+html[data-mobile-reading] .snes-pad .dock__dpad,html[data-mobile-reading] .snes-pad__face{position:absolute;top:50%;transform:translateY(-50%);padding:8px;width:148px;height:148px;border-radius:50%;background:var(--snes-shell);box-shadow:inset 0 2px 2px #fff8,0 4px 10px #0005;pointer-events:auto}
+html[data-mobile-reading] .snes-pad .dock__dpad{left:max(8px,env(safe-area-inset-left))}
+html[data-mobile-reading] .snes-pad__face{right:max(8px,env(safe-area-inset-right))}
+html[data-mobile-reading] .snes-pad__center{position:absolute;bottom:max(6px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:148px;padding:4px;border-radius:32px;background:var(--snes-shell);pointer-events:auto;box-shadow:0 3px 8px #0005}
+html[data-mobile-reading] .snes-pad__brand,html[data-mobile-reading] .snes-pad__hint{display:none}
+
+/* Touch controls are visible only during mobile 3D reading. */
+html[data-mobile-reading] .snes-pad{--snes-idle-opacity:.25;--snes-active-opacity:.8}
+html[data-mobile-reading] .snes-pad .dock__dpad,html[data-mobile-reading] .snes-pad__face,html[data-mobile-reading] .snes-pad__center{opacity:var(--snes-idle-opacity);transition:opacity .15s ease}
+html[data-mobile-reading] .snes-pad .dock__dpad:has(button:active),html[data-mobile-reading] .snes-pad__face:has(button:active),html[data-mobile-reading] .snes-pad__center:has(button:active),html[data-mobile-reading] .snes-pad .dock__dpad:has(button:focus-visible),html[data-mobile-reading] .snes-pad__face:has(button:focus-visible),html[data-mobile-reading] .snes-pad__center:has(button:focus-visible){opacity:var(--snes-active-opacity)}
+@media(prefers-reduced-motion:reduce){html[data-mobile-reading] .snes-pad .dock__dpad,html[data-mobile-reading] .snes-pad__face,html[data-mobile-reading] .snes-pad__center{transition:none}}
+.games-notebook{--notebook-paper:var(--tv-navy);--notebook-ink:var(--tv-paper);--notebook-lines:var(--ink-600);inset:0;margin:auto;width:min(640px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:58px 32px 30px;border:1px solid var(--ink-600);border-top:6px solid var(--amber-400);border-radius:4px;background:var(--notebook-paper);color:var(--notebook-ink);overflow:auto;box-shadow:5px 5px 0 #29324c,9px 9px 0 #101529,0 28px 100px #000a;scrollbar-gutter:stable}
+.games-notebook::backdrop{background:#07090dd6;backdrop-filter:blur(5px)}
+.games-notebook[open]{animation:notebook-reveal .3s ease-out both}
+.games-notebook__spiral{position:absolute;inset:9px 24px auto;display:flex;justify-content:space-between;height:36px;pointer-events:none}
+.games-notebook__spiral i{position:relative;display:block;width:15px;height:32px;border:2px solid #aeb6c8;border-left-color:#59647b;border-radius:50%;background:linear-gradient(90deg,#11162a 0 35%,#5f6a7d 40% 52%,#c6ccd8 56% 64%,#11162a 70%);box-shadow:2px 2px 2px #0008;transform:rotate(-8deg)}
+.games-notebook__spiral i:after{content:"";position:absolute;bottom:-3px;left:1px;width:9px;height:6px;background:#07090d;border-radius:50%;z-index:-1}
+.games-notebook__header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:8px 16px;border-bottom:2px solid var(--amber-400);background:var(--notebook-paper)}
+.games-notebook .eyebrow{color:var(--amber-400);font-size:11px;margin:0 0 8px;letter-spacing:.1em}
+.games-notebook h2{font:700 clamp(22px,3vw,29px)/1.2 'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.02em;color:var(--notebook-ink);margin:0}
+.games-notebook #notebook-description{font:13px/1.6 Inter,sans-serif;color:var(--text-muted);margin:14px 0 24px}
+.games-notebook .btn{background:transparent;border:1px solid var(--ink-600);color:var(--notebook-ink);min-height:44px;padding:8px 12px;cursor:pointer;flex-shrink:0}
+.games-notebook .btn:hover{color:var(--amber-400);border-color:var(--amber-400)}
+.games-notebook button:focus-visible{outline:3px solid var(--amber-400);outline-offset:3px}
+.games-notebook__pages{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;padding-left:14px;border-left:1px solid color-mix(in srgb,var(--amber-400) 45%,transparent)}
+.games-notebook__pages:before{content:none}
+.games-notebook__page{min-width:0;padding:0;background:none;border:0}
+.games-notebook h3{font:700 19px/28px 'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px;color:var(--amber-400)}
+.games-notebook ul{list-style:none;padding:0;margin:0;font:14px/24px Inter,sans-serif}
+.games-notebook li{position:relative;padding:5px 0 5px 28px;min-height:36px;border-bottom:1px solid var(--notebook-lines);overflow-wrap:anywhere}
+.games-notebook li:before{content:"";position:absolute;left:0;top:11px;width:12px;height:12px;border:1px solid #8a96b0;border-radius:1px}
+.games-notebook__finished{padding-top:16px;border-top:1px dashed var(--ink-600)}
+.games-notebook .games-notebook__completed li:before{content:"✓";font:700 15px/11px Inter,sans-serif;border-color:var(--amber-400);color:var(--amber-400)}
+.games-notebook s{text-decoration-thickness:1px;text-decoration-color:var(--amber-400);color:#aeb6c8}
+@keyframes notebook-reveal{from{opacity:0;transform:translateY(35px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:600px){.games-notebook{padding:52px 20px 24px;max-height:calc(100dvh - 24px)}.games-notebook__header{top:0;gap:12px}.games-notebook__spiral{inset-inline:18px}.games-notebook__spiral i{width:11px;height:29px}.games-notebook .eyebrow{font-size:9px}.games-notebook h2{font-size:21px}.games-notebook ul{font-size:13px}.games-notebook__pages{padding-left:10px}.games-notebook #notebook-description{margin-bottom:18px}}
+@media(prefers-reduced-motion:reduce){.games-notebook[open]{animation:none}}
+
+.games-notebook.notebook-inspector{width:min(1080px,calc(100vw - 32px));height:min(900px,calc(100dvh - 32px));padding:20px;border:1px solid var(--ink-600);border-radius:8px;background:var(--ink-850);box-shadow:0 24px 100px #000a;scrollbar-gutter:auto}
+.notebook-inspector[open]{display:flex;flex-direction:column}
+.notebook-inspector .games-notebook__header{position:static;flex:0 0 auto;padding:0 0 12px;border-bottom:1px solid var(--ink-600);background:transparent}
+.notebook-inspector h2{font-size:clamp(20px,3vw,27px)}
+.notebook-inspector #notebook-description{flex:0 0 auto;margin:10px 0;color:var(--text-muted)}
+.notebook-inspector__viewport{position:relative;flex:1 0 230px;min-height:230px;border:1px solid var(--ink-600);border-radius:4px;overflow:hidden;background:radial-gradient(ellipse at center,#28324d 0,#0b0e14 80%)}
+.notebook-inspector__viewport canvas{display:block;width:100%;height:100%;position:absolute;inset:0;touch-action:none;cursor:grab;outline-offset:-4px}
+.notebook-inspector__viewport canvas.is-held{cursor:grabbing}
+.notebook-inspector__viewport canvas[data-tool="move"]{cursor:move}
+.notebook-inspector__tools{flex:0 0 auto;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding-top:12px}
+.notebook-inspector__tools button{min-width:44px;min-height:44px;padding:8px 12px;border:1px solid var(--ink-600);border-radius:3px;background:var(--tv-navy);color:var(--tv-paper);font:14px Inter,sans-serif;cursor:pointer}
+.notebook-inspector__tools button:hover{border-color:var(--amber-400)}
+.notebook-inspector__tools button[aria-pressed="true"]{color:var(--ink-900);background:var(--amber-400);border-color:var(--amber-400)}
+.notebook-inspector__text{flex:0 0 auto;margin-top:12px;font:13px/1.6 Inter,sans-serif}
+.notebook-inspector__text summary{padding:6px 0;cursor:pointer;color:var(--amber-400)}
+.notebook-inspector__text .games-notebook__pages{margin-top:12px}
+.notebook-inspector[data-viewer="unavailable"] .notebook-inspector__viewport,.notebook-inspector[data-viewer="unavailable"] .notebook-inspector__tools{display:none}
+@media(max-height:600px){.games-notebook.notebook-inspector{height:calc(100dvh - 20px);max-height:calc(100dvh - 20px);padding:12px}.notebook-inspector .games-notebook__header{padding-bottom:8px}.notebook-inspector .eyebrow{display:none}.notebook-inspector #notebook-description{font-size:11px;margin:6px 0}.notebook-inspector__viewport{flex-basis:150px;min-height:150px}.notebook-inspector__tools{gap:6px;padding-top:8px}.notebook-inspector__tools button{padding-inline:9px}.notebook-inspector__text{margin-top:6px}}
+.notebook-inspector__bible{align-self:center;margin-top:12px;text-decoration:none}
+.notebook-inspector__error{color:var(--amber-400);font:14px/1.5 Inter,sans-serif}
+.notebook-inspector [hidden]{display:none!important}
+.room-object-access:focus-within{position:fixed;inset:auto 16px 16px auto;z-index:50;width:auto;height:auto;max-width:calc(100vw - 32px);padding:12px;clip:auto;clip-path:none;overflow:visible;white-space:normal;display:grid;gap:8px;background:var(--ink-850);border:1px solid var(--ink-600)}
+.room-object-access button{min-height:44px;padding:8px 12px;text-align:left;background:var(--tv-navy);color:var(--tv-paper);border:1px solid var(--ink-600);cursor:pointer;font:14px Inter,sans-serif}
+.drawer-focus{position:fixed;inset:0;z-index:70;pointer-events:auto;background:radial-gradient(ellipse 150px 120px at var(--drawer-x,70%) var(--drawer-y,55%),transparent 0%,#07090d35 50%,#07090dd9 180%);opacity:.18;transition:opacity .38s ease;cursor:wait}
+.drawer-focus[hidden]{display:none}
+.drawer-focus[data-phase="fading"]{opacity:1}
+.notebook-inspector[data-object="notebook"][open]::backdrop{animation:drawer-backdrop .35s ease-out both}
+.notebook-inspector[data-object="notebook"][open] [data-notebook-canvas]{animation:notebook-pickup .42s ease-out both;transform-origin:50% 100%}
+@keyframes drawer-backdrop{from{background-color:#07090d80;backdrop-filter:blur(0)}to{background-color:#07090dd6;backdrop-filter:blur(5px)}}
+@keyframes notebook-pickup{from{opacity:0;transform:translateY(48px) scale(.88)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.drawer-focus{transition:none}.notebook-inspector[data-object="notebook"][open]::backdrop,.notebook-inspector[data-object="notebook"][open] [data-notebook-canvas]{animation:none}}

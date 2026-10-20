@@ -16,17 +16,6 @@
       }
     ]
   },
-  "Retenção": {
-    "definition": "É o trabalho de manter o cliente engajado e satisfeito com a solução, reduzindo os motivos que podem levar ao cancelamento, também chamado de churn.",
-    "experiences": [
-      {
-        "company": "MarQPonto · atual Marq HR",
-        "period": "2018–2021",
-        "description": "Atuei em iniciativas de Customer Success voltadas à redução de churn e ao aumento da retenção, ajudando os clientes a resolver dificuldades de uso para aproveitar melhor o sistema.",
-        "logo": "/img/marqhr-logo.svg"
-      }
-    ]
-  },
   "Suporte consultivo": {
     "definition": "É um atendimento que busca entender o contexto e a necessidade do cliente, além de resolver a dúvida imediata, para orientar o uso mais adequado da solução.",
     "experiences": [
@@ -40,17 +29,6 @@
         "company": "Pilgrim’s",
         "period": "2025–2026",
         "description": "Fiz a interface entre clientes e equipe técnica no levantamento de necessidades e na resolução de problemas, com gestão de tickets e devolutivas consultivas durante a implantação.",
-        "logo": "/img/pilgrims-logo.webp"
-      }
-    ]
-  },
-  "Stakeholders": {
-    "definition": "São as pessoas e equipes envolvidas ou impactadas por uma entrega. Trabalhar com stakeholders significa alinhar necessidades, expectativas e informações entre essas partes.",
-    "experiences": [
-      {
-        "company": "Pilgrim’s",
-        "period": "2025–2026",
-        "description": "Conectei empresas clientes, equipe técnica e Produto para levantar necessidades, acompanhar melhorias e dar retorno sobre a implantação da plataforma.",
         "logo": "/img/pilgrims-logo.webp"
       }
     ]
@@ -97,6 +75,12 @@
         "period": "2018–2021",
         "description": "Apoiei a implantação de uma plataforma SaaS de controle de ponto, com parametrização das regras da empresa e orientação dos usuários para adoção da solução.",
         "logo": "/img/marqhr-logo.svg"
+      },
+      {
+        "company": "Pilgrim’s",
+        "period": "2025–2026",
+        "logo": "/img/pilgrims-logo.webp",
+        "description": "Conduzi a implantação da plataforma de gestão logística junto às empresas clientes, alinhando necessidades da operação, preparação dos usuários e interface com a equipe técnica."
       }
     ]
   },
@@ -107,17 +91,6 @@
         "company": "MarQPonto · atual Marq HR",
         "period": "2018–2021",
         "description": "Apoiei a configuração da plataforma conforme regras de jornada, escalas e políticas internas dos clientes. Orientei cadastros, turnos, banco de horas, permissões, relatórios e fechamento da folha ponto.",
-        "logo": "/img/marqhr-logo.svg"
-      }
-    ]
-  },
-  "Orientar/realizar treinamentos": {
-    "definition": "É a orientação e a capacitação de clientes para compreender as rotinas da plataforma e utilizá-la com autonomia, por meio de treinamentos individuais e coletivos.",
-    "experiences": [
-      {
-        "company": "MarQPonto · atual Marq HR",
-        "period": "2018–2021",
-        "description": "Conduzi treinamentos individuais e coletivos sobre a plataforma de ponto para mais de 300 empresas, com alguns dos treinamentos reunindo mais de 30 participantes. Orientava os usuários sobre as principais rotinas do sistema para apoiar o uso com autonomia.",
         "logo": "/img/marqhr-logo.svg"
       }
     ]
@@ -173,17 +146,6 @@
       }
     ]
   },
-  "Produto": {
-    "definition": "É a colaboração com a equipe responsável pela evolução da solução, conectando necessidades dos usuários, dificuldades de uso e oportunidades de melhoria.",
-    "experiences": [
-      {
-        "company": "MarQPonto · atual Marq HR",
-        "period": "2018–2021",
-        "description": "Fiz parte da primeira equipe de Customer Success da MarQPonto, atual MarQ HR, quando éramos apenas dois profissionais de CS e menos de sete pessoas entre funcionários e sócios. Colaborava com a equipe no onboarding, na implantação, nos treinamentos e no acompanhamento dos clientes, contribuindo para a base do sucesso da empresa, que hoje conta com mais de 40 funcionários em tempo integral.",
-        "logo": "/img/marqhr-logo.svg"
-      }
-    ]
-  },
   "Suporte remoto": {
     "definition": "É o atendimento e a orientação de usuários a distância, utilizando canais de comunicação e ferramentas que permitem acompanhar dúvidas e dificuldades sem presença física.",
     "experiences": [
@@ -195,9 +157,70 @@
       }
     ]
   },
-  "Desenvolvimento": {
+  "Treinamento de usuários": {
+    "definition": "É a orientação e a capacitação de clientes para compreender as rotinas da plataforma e utilizá-la com autonomia, por meio de treinamentos individuais e coletivos.",
+    "experiences": [
+      {
+        "company": "MarQPonto · atual Marq HR",
+        "period": "2018–2021",
+        "description": "Conduzi treinamentos individuais e coletivos sobre a plataforma de ponto para mais de 300 empresas, com alguns dos treinamentos reunindo mais de 30 participantes. Orientava os usuários sobre as principais rotinas do sistema para apoiar o uso com autonomia.",
+        "logo": "/img/marqhr-logo.svg"
+      },
+      {
+        "company": "Pilgrim’s",
+        "period": "2025–2026",
+        "logo": "/img/pilgrims-logo.webp",
+        "description": "Treinei usuários finais na plataforma de gestão logística e elaborei materiais e orientações para facilitar o aprendizado durante o onboarding e a implantação."
+      }
+    ]
+  },
+  "Relacionamento com stakeholders": {
+    "definition": "São as pessoas e equipes envolvidas ou impactadas por uma entrega. Trabalhar com stakeholders significa alinhar necessidades, expectativas e informações entre essas partes.",
+    "experiences": [
+      {
+        "company": "Pilgrim’s",
+        "period": "2025–2026",
+        "description": "Conectei empresas clientes, equipe técnica e Produto para levantar necessidades, acompanhar melhorias e dar retorno sobre a implantação da plataforma.",
+        "logo": "/img/pilgrims-logo.webp"
+      }
+    ]
+  },
+  "Retenção de clientes": {
+    "definition": "É o trabalho de manter o cliente engajado e satisfeito com a solução, reduzindo os motivos que podem levar ao cancelamento, também chamado de churn.",
+    "experiences": [
+      {
+        "company": "MarQPonto · atual Marq HR",
+        "period": "2018–2021",
+        "description": "Atuei em iniciativas de Customer Success voltadas à redução de churn e ao aumento da retenção, ajudando os clientes a resolver dificuldades de uso para aproveitar melhor o sistema.",
+        "logo": "/img/marqhr-logo.svg"
+      }
+    ]
+  },
+  "Colaboração com Produto": {
+    "definition": "É a colaboração com a equipe responsável pela evolução da solução, conectando necessidades dos usuários, dificuldades de uso e oportunidades de melhoria.",
+    "experiences": [
+      {
+        "company": "Pilgrim’s",
+        "period": "2025–2026",
+        "logo": "/img/pilgrims-logo.webp",
+        "description": "Atuei em conjunto com o time de Produto no acompanhamento de melhorias da plataforma, na gestão de tickets e nas devolutivas consultivas aos clientes durante todo o processo de implantação."
+      },
+      {
+        "company": "MarQPonto · atual Marq HR",
+        "period": "2018–2021",
+        "logo": "/img/marqhr-logo.svg",
+        "description": "Identificava dificuldades de uso e relatos de bugs, reproduzia os fluxos e documentava o contexto antes de encaminhar os chamados aos times de Produto e Desenvolvimento."
+      }
+    ]
+  },
+  "Desenvolvimento Front-end": {
     "definition": "É a criação de interfaces e experiências digitais, combinando estrutura, apresentação e interatividade.",
     "experiences": [
+      {
+        "company": "GP Strategies Brasil",
+        "period": "Fev 2021 – Mar 2025",
+        "description": "Atuei por quatro anos e um mês como Frontend Developer Pleno, participando de mais de 120 projetos entregues, sendo mais de 50 com React e TypeScript. Desenvolvi interfaces responsivas e acessíveis, componentes reutilizáveis, objetos educacionais interativos e integrações com APIs REST e plataformas LMS via SCORM."
+      },
       {
         "kind": "personal-project",
         "company": "Este portfólio",

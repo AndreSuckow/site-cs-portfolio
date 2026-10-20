@@ -9,6 +9,16 @@ const engine=fs.readFileSync('public/engine.js','utf8');
 const profile=JSON.parse(fs.readFileSync('profile.json','utf8'));
 const activeNames=new Set(profile.skills.flatMap(b=>b.skills.map(s=>s.name)));
 const details=Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync('skill-details.json','utf8'))).filter(([name])=>activeNames.has(name)));
+test('revised skill tree retains 15 skills and documents professional frontend evidence',()=>{
+ assert.deepEqual(profile.skills.map(b=>[b.name,b.skills.length]),[['Onboarding e Implantação',4],['Customer Success',6],['Competências Complementares',5]]);
+ assert.equal(activeNames.size,15);
+ assert(profile.skills[1].skills.some(s=>s.name==='Adoção de produto'));
+ assert(profile.skills[2].skills.some(s=>s.name==='Gestão de tickets'));
+ assert(profile.skills[2].skills.some(s=>s.name==='Resiliência'));
+ for(const name of ['Implantação SaaS','Treinamento de usuários','Colaboração com Produto'])assert(details[name].experiences.some(e=>e.company==='Pilgrim’s'));
+ assert(details['Desenvolvimento Front-end'].experiences.some(e=>e.company==='GP Strategies Brasil'&&e.description.includes('120 projetos')));
+ assert.deepEqual(profile.stats.map(s=>s.value),[5,5,4,4,5]);
+});
 function setup(mode='2d'){
   const dom=new JSDOM(html,{runScripts:'outside-only',url:'http://localhost:4173/'});
   const {window}=dom;
@@ -79,11 +89,32 @@ test('3D activation uses the actual engine action to open the same DOM modal',()
   dom.window.close();
 });
 
+test('mouse hover does not leave an attribute description pinned; navigation still shows it',()=>{
+ const {dom,window}=setup('3d');
+ const start=engine.indexOf('dC=class'),end=engine.indexOf(',fC=',start);
+ window.eval(`const ${engine.slice(start,end)}; window.AttributeScreen=dC;`);
+ const screen=Object.create(window.AttributeScreen.prototype);
+ Object.assign(screen,{mode:'tab',tab:'sobre',sel:new Map(),items:profile.stats.map((s,i)=>({id:'sobre/attribute/'+i,kind:'action'})),hoverId:null,selectionSource:null,onSelect:()=>{},assets:{}});
+ window.Eh=profile;window.X={};window.descriptions=[];
+ for(const name of ['Ev','Q','zS','kv','RS'])window[name]=()=>{};
+ window.wv=(ctx,text)=>window.descriptions.push(text);
+ const drawStart=engine.indexOf('function BS('),drawEnd=engine.indexOf('function csHobbies(',drawStart);
+ window.eval(`${engine.slice(drawStart,drawEnd)};window.drawAttributes=BS;`);
+ const draw=()=>{window.descriptions=[];window.drawAttributes({},screen,0);return window.descriptions;};
+ const last=screen.items[4];screen.hover(last);screen.hover(null);
+ assert(!draw().includes(profile.stats[4].description),'Leaving the last hovered attribute clears its bottom description');
+ screen.select(4);
+ assert(draw().includes(profile.stats[4].description),'Keyboard/controller navigation retains its accessible description');
+ screen.hover(screen.items.find(i=>i.id==='sobre/attribute/1'));screen.hover(null);
+ assert(!draw().includes(profile.stats[1].description),'Mouse use clears the navigation description again');
+ dom.window.close();
+});
+
 test('active skills reference maintained companies or the personal portfolio',()=>{
-  const companies=new Set(profile.experience.filter(item=>!item.invitation).map(item=>item.org));
+  const companies=new Set([...profile.experience.filter(item=>!item.invitation),...(profile.complementaryExperience||[])].map(item=>item.org));
   for(const [name,detail] of Object.entries(details))for(const experience of detail.experiences){
     if(experience.kind==='personal-project'){
-      assert.equal(name,'Desenvolvimento');assert.equal(experience.company,'Este portfólio');
+      assert.equal(name,'Desenvolvimento Front-end');assert.equal(experience.company,'Este portfólio');
     }else assert(companies.has(experience.company));
   }
 });

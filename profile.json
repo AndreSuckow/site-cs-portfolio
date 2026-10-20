@@ -19,6 +19,15 @@
   ],
   "mission": "Ouvir para entender. Orientar para gerar valor. Acompanhar para que o cliente escolha ficar.",
   "missionShort": "Ouvir para entender. Orientar para gerar valor. Acompanhar para que o cliente escolha ficar.",
+  "complementaryExperience": [
+    {
+      "org": "GP Strategies Brasil",
+      "role": "Frontend Developer Pleno",
+      "period": "Fev 2021 – Mar 2025",
+      "source": "documents/curriculo-original.docx",
+      "summary": "Quatro anos e um mês, com participação em mais de 120 projetos entregues, sendo mais de 50 com React e TypeScript."
+    }
+  ],
   "stats": [
     {
       "label": "Customer Success",
@@ -38,7 +47,7 @@
     {
       "label": "Retenção / churn",
       "value": 4,
-      "description": "Identificava riscos de cancelamento (churn), tratava dificuldades e acompanhava clientes para fortalecer a permanência (retenção)."
+      "description": "Na MarQPonto, participava de iniciativas de redução de churn: identificava dificuldades de uso, orientava clientes e propunha soluções para aumentar a utilização do sistema e apoiar a permanência."
     },
     {
       "label": "Treinamentos",
@@ -97,7 +106,7 @@
   "skills": [
     {
       "id": "onboarding",
-      "name": "Onboarding",
+      "name": "Onboarding e Implantação",
       "color": 5,
       "skills": [
         {
@@ -109,20 +118,12 @@
           "note": "Traduzia jornadas, escalas e regras de cada empresa em configurações para o dia a dia."
         },
         {
-          "name": "Orientar/realizar treinamentos",
+          "name": "Treinamento de usuários",
           "note": "Mais de 300 empresas treinadas, com alguns treinamentos reunindo mais de 30 participantes."
         },
         {
           "name": "Materiais de apoio",
           "note": "Elaborava orientações sobre normas de ponto coletivo e rotinas da plataforma para apoiar os clientes."
-        },
-        {
-          "name": "Adoção de produto",
-          "note": "Identificava dificuldades e orientava o cliente para transformar acesso à plataforma em uso no dia a dia."
-        },
-        {
-          "name": "Gestão de tickets",
-          "note": "Reproduzia o bug, capturava o print e documentava o card antes de reportar a Produto e Desenvolvimento."
         }
       ]
     },
@@ -136,11 +137,15 @@
           "note": "Acompanhava o cliente dos primeiros passos ao uso cotidiano, em conjunto com suporte e demais áreas."
         },
         {
+          "name": "Adoção de produto",
+          "note": "Identificava dificuldades e orientava o cliente para transformar acesso à plataforma em uso no dia a dia."
+        },
+        {
           "name": "Suporte consultivo",
           "note": "Entendia a rotina da empresa para orientar o uso da plataforma de acordo com suas necessidades."
         },
         {
-          "name": "Stakeholders",
+          "name": "Relacionamento com stakeholders",
           "note": "Conectava clientes, Produto e equipe técnica para alinhar necessidades e acompanhar melhorias."
         },
         {
@@ -148,31 +153,35 @@
           "note": "Explicava processos para públicos diferentes, dos atendimentos individuais aos grupos com mais de 30 pessoas."
         },
         {
-          "name": "Resiliência",
-          "note": "Mantinha clareza no fechamento de ponto e agilidade em chamados urgentes de operações de e-commerce."
-        },
-        {
-          "name": "Retenção",
+          "name": "Retenção de clientes",
           "note": "Atuava na redução de churn, ajudando o cliente a superar dificuldades e aproveitar melhor o sistema."
         }
       ]
     },
     {
       "id": "business",
-      "name": "Outras Habilidades",
+      "name": "Competências Complementares",
       "color": 15,
       "skills": [
         {
-          "name": "Produto",
-          "note": "Colaborava na primeira equipe de CS da MarQ: dois profissionais construindo a base do atendimento."
+          "name": "Gestão de tickets",
+          "note": "Reproduzia o bug, capturava o print e documentava o card antes de reportar a Produto e Desenvolvimento."
         },
         {
           "name": "Suporte remoto",
           "note": "Orientava clientes por telefone, WhatsApp e chamadas, aproximando o suporte de quem precisava."
         },
         {
-          "name": "Desenvolvimento",
-          "note": "Construí este portfólio com minhas habilidades de frontend e apoio de inteligência artificial."
+          "name": "Colaboração com Produto",
+          "note": "Conectava necessidades dos clientes ao time de Produto, acompanhando melhorias, tickets e devolutivas na Pilgrim’s."
+        },
+        {
+          "name": "Resiliência",
+          "note": "Mantinha clareza no fechamento de ponto e agilidade em chamados urgentes de operações de e-commerce."
+        },
+        {
+          "name": "Desenvolvimento Front-end",
+          "note": "Mais de quatro anos na GP Strategies Brasil, com participação em mais de 120 projetos e experiência em React, TypeScript e acessibilidade."
         }
       ]
     }
@@ -187,7 +196,7 @@
     {
       "id": "training",
       "icon": "book",
-      "title": "Orientar/realizar treinamentos",
+      "title": "Treinamento de usuários",
       "text": "Mais de 300 empresas treinadas, com alguns treinamentos reunindo mais de 30 participantes."
     }
   ],

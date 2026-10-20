@@ -3,6 +3,8 @@
 export function createNewRoom(T){
  const {Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,Material,CanvasTexture,SRGB}=T;
  const root=new Group();root.name='Novo Quarto 3D';
+ const interactive=new Group();interactive.name='Room discoveries';const targets=[];
+ function action(mesh,id,label){mesh.userData.roomAction={id,label};targets.push(mesh);return mesh;}
  const boxGeometry=new BoxGeometry(1,1,1),planeGeometry=new PlaneGeometry(1,1);
  const materials=new Map(),resources=[boxGeometry,planeGeometry];
  let seed=3421;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
@@ -64,9 +66,18 @@ export function createNewRoom(T){
  box('Desk right side',1.08,.245,-1,.05,.46,.51,oak);
  box('Drawer pedestal',.73,.24,-1,.5,.44,.49,oak);
  for(let i=0;i<3;i++){
-  box('Desk drawer',.73,.12+i*.13,-.743,.46,.12,.025,oak);
-  box('Desk drawer handle',.73,.12+i*.13,-.723,.085,.012,.016,black);
+  if(i!==2){box('Desk drawer',.73,.12+i*.13,-.743,.46,.12,.025,oak);box('Desk drawer handle',.73,.12+i*.13,-.723,.085,.012,.016,black);}
  }
+ const drawer=new Group();drawer.name='First desk drawer';drawer.position.set(.73,.38,-.743);interactive.add(drawer);
+ const front=box('Clickable top drawer',0,0,0,.46,.12,.025,oak,drawer);action(front,'notebook','Abrir gaveta: caderno de jogos');
+ action(box('Top drawer handle',0,0,.02,.085,.012,.016,black,drawer),'notebook','Abrir gaveta: caderno de jogos');
+ box('Drawer bottom',0,-.045,-.17,.43,.015,.33,darkOak,drawer);
+ for(const x of [-.22,.22])box('Drawer side',x,-.015,-.17,.015,.08,.33,oak,drawer);
+ const drawerNotebook=new Group();drawerNotebook.name='Notebook rising from drawer';drawer.add(drawerNotebook);
+ box('Games notebook cover',0,-.027,-.12,.26,.015,.21,material('#344e78'),drawerNotebook);
+ box('Notebook pages',0,-.017,-.12,.247,.009,.2,material('#f0e6c6'),drawerNotebook);
+ const notebookMap=texture((c,w,h)=>{c.fillStyle='#141833';c.fillRect(0,0,w,h);c.strokeStyle='#4e5d8a';for(let y=115;y<h;y+=38){c.beginPath();c.moveTo(24,y);c.lineTo(w-24,y);c.stroke();c.strokeRect(28,y-24,15,15);}c.fillStyle='#ffb547';c.font='bold 42px monospace';c.fillText('MEUS JOGOS',32,80);c.strokeStyle='#aeb6c8';c.lineWidth=4;for(let x=24;x<w-10;x+=35){c.beginPath();c.ellipse(x,17,6,14,0,0,Math.PI*2);c.stroke();}},512,384);
+ plane('Notebook in drawer',0,-.011,-.12,.246,.199,material('#ffffff',notebookMap),[-Math.PI/2,0,0],drawerNotebook);
  // Wardrobe with inset panels, open center niche and suitcases above it.
  const wx=-1.45,wz=-1.02;
  box('Wardrobe back',wx,.85,-1.26,1.05,1.64,.035,darkOak);
@@ -83,8 +94,32 @@ export function createNewRoom(T){
  }
  box('Center niche shadow',wx,.97,-1.237,.32,.49,.01,material('#342b20'));
  box('Center niche base',wx,.72,-1,.36,.035,.5,oak);
- box('Book inside wardrobe',wx+.01,.755,-.86,.19,.025,.12,material('#56705a'));
- box('Book pages',wx+.01,.755,-.795,.17,.015,.004,material('#d2cba7'));
+ const bible=box('Holy Bible',wx+.01,.755,-.86,.20,.035,.135,material('#302925'),interactive);action(bible,'bible','Ler a Bíblia Online · NTLH');
+ const biblePages=box('Bible gilt pages',wx+.01,.755,-.79,.18,.02,.006,material('#d7c48c'),interactive);
+ const bibleMap=texture((c,w,h)=>{c.fillStyle='#241b19';c.fillRect(0,0,w,h);c.strokeStyle='#c6a365';c.lineWidth=6;c.strokeRect(20,20,w-40,h-40);c.fillStyle='#d4b578';c.fillRect(w/2-7,50,14,130);c.fillRect(w/2-43,85,86,14);c.textAlign='center';c.font='bold 48px Georgia';c.fillText('BÍBLIA',w/2,255);c.font='28px Georgia';c.fillText('SAGRADA',w/2,300);},512,384);
+ const bibleCover=action(plane('Bible gold cover',wx+.01,.773,-.86,.20,.135,material('#ffffff',bibleMap),[-Math.PI/2,0,0],interactive),'bible','Bíblia · examinar em 3D · NTLH');
+ // Open red pocket encyclopedia, beside the three cartridges.
+ const pokedex=new Group();pokedex.name='Pokéagenda';pokedex.position.set(.76,.51,-.84);pokedex.rotation.y=-.14;root.add(pokedex);
+ const deviceRed=material('#b92c36'),deviceDark=material('#342e39');
+ box('Pokeagenda base',0,0,0,.18,.019,.13,deviceRed,pokedex);
+ box('Pokeagenda lower screen',-.035,.011,0,.063,.003,.065,material('#87a99a'),pokedex);
+ box('Pokeagenda directional vertical',.048,.012,.02,.012,.006,.043,deviceDark,pokedex);
+ box('Pokeagenda directional horizontal',.048,.012,.02,.043,.006,.012,deviceDark,pokedex);
+ const deviceLid=new Group();deviceLid.position.set(0,0,-.063);deviceLid.rotation.x=.83;pokedex.add(deviceLid);
+ box('Pokeagenda lid',0,.005,-.06,.18,.016,.13,deviceRed,deviceLid);
+ const dexMap=texture((c,w,h)=>{c.fillStyle='#a3c8b2';c.fillRect(0,0,w,h);c.fillStyle='#263f42';c.font='bold 42px monospace';c.fillText('POKÉAGENDA',22,54);c.font='26px monospace';c.fillText('Nº 025',22,96);c.fillStyle='#e2c74c';c.fillRect(154,107,90,92);c.fillRect(146,82,21,45);c.fillRect(226,82,21,45);c.fillStyle='#263f42';c.fillRect(170,131,10,10);c.fillRect(215,131,10,10);c.fillStyle='#ba4a3a';c.fillRect(160,155,17,13);c.fillRect(220,155,17,13);},400,256);
+ plane('Pokeagenda display',0,.014,-.06,.143,.091,material('#ffffff',dexMap),[-Math.PI/2,0,0],deviceLid);
+ cylinder('Pokeagenda blue lens',-.067,.015,-.048,.012,.006,material('#52b8dd'),12,pokedex);
+ // An original family illustration; no photo or family identity is invented.
+ const familyMap=texture((c,w,h)=>{c.fillStyle='#c5c8ac';c.fillRect(0,0,w,h);c.fillStyle='#8b9b7c';c.fillRect(0,h*.7,w,h*.3);for(const [x,y,size,shirt] of [[140,140,1,'#6c8b9a'],[280,135,1,'#c98b74'],[215,225,.65,'#d3b16c']]){c.fillStyle=shirt;c.fillRect(x-42*size,y+40*size,84*size,120*size);c.fillStyle='#c69972';c.beginPath();c.arc(x,y,40*size,0,Math.PI*2);c.fill();c.fillStyle='#514333';c.fillRect(x-40*size,y-32*size,80*size,20*size);}c.fillStyle='#f2e1bc';c.textAlign='center';c.font='bold 24px Georgia';c.fillText('FAMÍLIA',w/2,h-18);},420,380);
+ const frame=new Group();frame.name='Family portrait frame';frame.position.set(.94,.64,-1.08);frame.rotation.set(-.12,-.35,0);root.add(frame);
+ box('Family frame backing',0,0,0,.18,.23,.017,endWood,frame);
+ plane('Family illustration',0,0,.009,.152,.20,material('#ffffff',familyMap),[0,0,0],frame);
+ box('Family frame stand',0,-.07,-.06,.055,.14,.02,endWood,frame);
+ box('Family frame foot',0,-.13,-.06,.075,.02,.08,endWood,frame);
+ const pickMaterial=new T.BasicMaterial({transparent:true,opacity:0,depthWrite:false});resources.push(pickMaterial);
+ const dexHit=action(box('Inspect Pokedex',.76,.55,-.87,.21,.13,.23,pickMaterial,interactive),'pokedex','Pokédex · segurar e girar');dexHit.castShadow=false;dexHit.receiveShadow=false;
+ const frameHit=action(box('Inspect family frame',.94,.64,-1.08,.21,.26,.12,pickMaterial,interactive),'family','Quadro da família · segurar e girar');frameHit.rotation.copy(frame.rotation);frameHit.castShadow=false;frameHit.receiveShadow=false;
  for(let i=0;i<3;i++){
   box('Wardrobe center drawer',wx,.24+i*.155,-.736,.33,.142,.028,oak);
   box('Drawer pull',wx,.24+i*.155,-.713,.09,.014,.018,black);
@@ -223,5 +258,25 @@ export function createNewRoom(T){
   const mesh=new Mesh(geo,batch.material);mesh.name='Static room surfaces';mesh.castShadow=batch.castShadow;mesh.receiveShadow=batch.receiveShadow;root.add(mesh);
  }
  root.userData={version:'novo-quarto-3d',parts:partCount,batches:batches.size};
- return {root,dispose(){for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
+ root.add(interactive);
+ function getInspectionModel(kind){
+  if(kind==='bible'){const model=new Group();for(const part of [bible,biblePages,bibleCover])model.add(part.clone());model.rotation.x=Math.PI/2;return model;}
+  if(kind==='pokedex'){const model=pokedex.clone(true);model.rotation.set(.75,0,0);return model;}
+  if(kind==='family'){const model=frame.clone(true);model.rotation.set(-.12,0,0);return model;}
+  return null;
+ }
+ let drawerSequence=0;
+ function setDrawerOpen(open,reduced=false,callbacks={}){
+  const sequence=++drawerSequence,current=()=>sequence===drawerSequence;
+  if(!T.animate||reduced){drawer.position.z=open?-.51:-.743;drawerNotebook.position.set(0,open?.115:0,open?.065:0);if(open){callbacks.opened?.();callbacks.ready?.();}return;}
+  if(open){
+   T.animate(drawer.position,{z:-.51,duration:.7,ease:'power3.inOut',overwrite:true,onComplete(){
+    if(!current())return;callbacks.opened?.();
+    T.animate(drawerNotebook.position,{y:.115,z:.065,duration:.38,ease:'power2.out',overwrite:true,onComplete(){if(current())callbacks.ready?.();}});
+   }});
+  }else{
+   T.animate(drawerNotebook.position,{y:0,z:0,duration:.2,ease:'power2.in',overwrite:true,onComplete(){if(current())T.animate(drawer.position,{z:-.743,duration:.45,ease:'power2.inOut',overwrite:true});}});
+  }
+ }
+ return {root,targets,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
 }

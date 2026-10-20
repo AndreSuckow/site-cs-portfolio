@@ -39,7 +39,11 @@ function bullets(start,end){
     while(i<end&&!/^[•●]/.test(source[i+1]))text+=' '+source[++i];
     // Original also contains two bullet items inside a single paragraph.
     const parts=text.split(/\s+(?=•)/);
-    for(const part of parts)block(part,{indent:part.startsWith('●')?18:8,gap:3});
+    for(const part of parts){
+      const training=part.startsWith('• Condução de treinamentos individuais e coletivos');
+      const content=training?part+' Mais de 300 empresas treinadas.':part;
+      block(content,{indent:part.startsWith('●')?18:8,gap:3});
+    }
   }
 }
 function job(start,end){
@@ -94,6 +98,7 @@ for(let i=1;i<=pdf.numPages;i++){
 }
 // Verify every original paragraph remains present, not just the summarized profile.
 const actual=normalized(extracted);
+if(!actual.includes('Mais de 300 empresas treinadas.'))throw Error('Training total missing from PDF');
 for(const paragraph of source)if(!actual.includes(normalized(paragraph)))throw Error(`Missing original content: ${paragraph}`);
 fs.writeFileSync(path.join(previewDir,'verification.json'),JSON.stringify({source:'documents/curriculo-original.docx',output,pages:pdf.numPages,originalParagraphs:source.length,allOriginalParagraphsPresent:true,geometries},null,2));
 fs.copyFileSync(output,'public/curriculo-andre-suckow.pdf');

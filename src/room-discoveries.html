@@ -1,0 +1,34 @@
+<nav class="sr-only room-object-access only-3d" aria-label="Objetos do quarto">
+  <button type="button" data-room-inspect="bible" aria-haspopup="dialog" aria-controls="games-notebook">Bíblia · examinar em 3D</button>
+  <button type="button" data-room-inspect="pokedex" aria-haspopup="dialog" aria-controls="games-notebook">Pokédex · examinar em 3D</button>
+  <button type="button" data-room-inspect="family" aria-haspopup="dialog" aria-controls="games-notebook">Quadro da família · examinar em 3D</button>
+  <button type="button" data-room-notebook aria-haspopup="dialog" aria-controls="games-notebook">Primeira gaveta · caderno de jogos</button>
+</nav>
+<div class="drawer-focus" data-drawer-focus aria-hidden="true" hidden></div>
+<dialog id="games-notebook" class="dialog games-notebook notebook-inspector" aria-labelledby="notebook-title" aria-describedby="notebook-description" data-lenis-prevent>
+ <header class="games-notebook__header"><div><p class="eyebrow">Super Nintendo · Minhas aventuras</p><h2 id="notebook-title">Meu caderno de jogos</h2></div><button type="button" class="btn" data-notebook-close>Fechar</button></header>
+ <p id="notebook-description">Segure e arraste o caderno para girar. Use a roda do mouse ou dois dedos para aproximar.</p>
+ <div class="notebook-inspector__viewport"><canvas data-notebook-canvas tabindex="0" role="img" aria-label="Caderno de jogos em 3D. Arraste para girar; use as setas no teclado, mais e menos para zoom e Home para voltar à posição inicial." aria-describedby="notebook-description"></canvas></div>
+ <div class="notebook-inspector__tools" role="group" aria-label="Manusear caderno">
+  <button type="button" data-notebook-tool="rotate" aria-pressed="true">Girar</button><button type="button" data-notebook-tool="move" aria-pressed="false">Mover</button>
+  <button type="button" data-notebook-view="left" aria-label="Girar caderno para a esquerda">↶</button><button type="button" data-notebook-view="right" aria-label="Girar caderno para a direita">↷</button>
+  <button type="button" data-notebook-view="out" aria-label="Afastar caderno">−</button><button type="button" data-notebook-view="in" aria-label="Aproximar caderno">+</button><button type="button" data-notebook-view="reset">Reposicionar</button>
+ </div>
+ <a class="btn notebook-inspector__bible" href="https://www.bibliaonline.com.br/ntlh/livros" data-room-bible target="_blank" rel="noopener noreferrer" hidden>Ler Bíblia Online · NTLH ↗</a>
+ <p class="notebook-inspector__error" role="status" hidden>Não foi possível abrir a visualização 3D.</p>
+ <details class="notebook-inspector__text"><summary>Ler lista em texto</summary>
+ <div class="games-notebook__pages">
+  <section class="games-notebook__page" aria-labelledby="games-pending-title"><h3 id="games-pending-title">Falta zerar</h3><ul>
+   <li>Contra III: The Alien Wars</li><li>Street Fighter II Turbo</li><li>Donkey Kong Country</li><li>Donkey Kong Country 2</li>
+   <li>The Legend of Zelda: A Link to the Past</li><li>Super Metroid</li><li>Super Mario World 2: Yoshi’s Island</li><li>F-ZERO</li><li>Super Mario RPG</li>
+  </ul></section>
+  <section class="games-notebook__page games-notebook__finished" aria-labelledby="games-completed-title"><h3 id="games-completed-title">Zerei</h3><ul class="games-notebook__completed">
+   <li><s>Super Mario Kart</s><span class="sr-only"> — concluído</span></li>
+   <li><s>Super Mario World</s><span class="sr-only"> — concluído</span></li>
+   <li><s>Donkey Kong Country 3</s><span class="sr-only"> — concluído</span></li>
+   <li><s>Mega Man X</s><span class="sr-only"> — concluído</span></li>
+  </ul></section>
+ </div>
+ </details>
+</dialog>
+<script type="module" src="/room-discoveries.js?v=cs-mode-3"></script>

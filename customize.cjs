@@ -1,7 +1,7 @@
 // Generate the maintained CS portfolio from its own template and engine sources.
 const fs=require('node:fs');
 const {createHash}=require('node:crypto');
-const runtimeVersion=createHash('sha256').update(['src/engine.js','src/boot.js','profile.json','public/cs-interactions.js','public/contact-form.js','public/mobile-reading.js','public/custom.css','public/hobby-icons.js','public/audio-controller.js','public/new-room.js'].map(file=>fs.readFileSync(file,'utf8')).join('\n')).digest('hex').slice(0,12);
+const runtimeVersion=createHash('sha256').update(['src/engine.js','src/boot.js','profile.json','public/cs-interactions.js','public/contact-form.js','public/mobile-reading.js','public/custom.css','public/hobby-icons.js','public/audio-controller.js','public/new-room.js','public/snes-console.js','public/snes-controls.js','public/career-map.js','public/room-discoveries.js','public/notebook-viewer.js','src/room-discoveries.html'].map(file=>fs.readFileSync(file,'utf8')).join('\n')).digest('hex').slice(0,12);
 const versionRuntime=source=>source.replaceAll('?v=cs-mode-3',`?v=${runtimeVersion}`).replace('src="/cs-interactions.js"',`src="/cs-interactions.js?v=${runtimeVersion}"`).replace('src="/contact-form.js"',`src="/contact-form.js?v=${runtimeVersion}"`).replace('src="/mobile-reading.js"',`src="/mobile-reading.js?v=${runtimeVersion}"`);
 const p=JSON.parse(fs.readFileSync('profile.json','utf8'));
 const skillDetails=JSON.parse(fs.readFileSync('skill-details.json','utf8'));
@@ -29,6 +29,7 @@ html=html.replace(/(<span class="hero__name">)[\s\S]*?(<\/span>)/,`$1${esc(p.nam
 html=html.replace(/(<p class="hero__lead">)[\s\S]*?(<\/p>)/,`$1${esc(p.headline)}$2`).replace(/(<p class="hero__intro">)[\s\S]*?(<\/p>)/,`$1${esc(p.intro)}$2`);
 html=html.replace(/(<script id="skill-details"[^>]*>)[\s\S]*?(<\/script>)/,(_,start,end)=>start+JSON.stringify(skillDetails).replaceAll('<',String.fromCharCode(92)+'u003c')+end);
 html=csPortfolio.decorate(html,p);
+html=html.replace('</body>',fs.readFileSync('src/room-discoveries.html','utf8')+'</body>');
 fs.writeFileSync('public/index.html',versionRuntime(html));
 fs.writeFileSync('public/boot.js',versionRuntime(fs.readFileSync('src/boot.js','utf8')));
 let engine=fs.readFileSync('src/engine.js','utf8');
