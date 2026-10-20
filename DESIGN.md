@@ -46,3 +46,5 @@ No celular, o conteúdo da TV 3D exige posição horizontal. Na vertical, um avi
 Contato 2D: introdução à esquerda e cartões à direita; no celular, uma coluna. Cada cartão tem somente duas colunas internas, para o marcador SLOT e o texto. A lista ocupa a largura disponível e o texto pode quebrar sem comprimir os cartões.
 
 `profile.json` e `skill-details.json` alimentam `customize.cjs` e `cs-portfolio.cjs`. As fontes HTML e do motor ficam em `src/`; o build escreve em `public/` e gera `dist/`. O quarto original e seus modelos foram preservados. O atlas RPG, a abertura alternativa, as trilhas e os pôsteres daquela versão foram removidos.
+
+Os objetos pessoais recebem cliques diretamente nas suas malhas 3D, sem caixas de clique ou menu visual. Hover eleva discretamente os objetos como os cartuchos e aplica luz âmbar; a gaveta recebe apenas o realce para preservar seu encaixe. Ao sair, os objetos voltam ao repouso. As alternativas semânticas de teclado permanecem recortadas e realçam os mesmos objetos sem revelar um painel.

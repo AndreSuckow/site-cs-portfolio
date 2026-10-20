@@ -58,3 +58,9 @@ Build, checagens e 20 testes passaram. Chrome verificou que cada modelo abre e g
 Removido o botão “Explorar quarto”. O clique direto na gaveta inicia seu deslocamento (0,7 s), seguido do esmaecimento do entorno e da subida do caderno físico (0,38 s). O visualizador abre apenas no callback final da animação. Escape cancela a transição pendente; movimento reduzido evita a animação. Sombras são atualizadas durante o movimento.
 
 Os 20 testes, build e check passaram. O Chrome acionou a gaveta por clique real no cenário e confirmou o modal fechado tanto no início quanto após a abertura física, antes da revelação do caderno; os fluxos de rotação, fechamento, desktop e celular continuaram passando. Captura em `tmp/portfolio-browser/drawer-opening.png`.
+
+## Objetos clicáveis na cena — 20/10/2026
+
+Bíblia, Pokédex, quadro e gaveta recebem o clique nas suas próprias geometrias, sem caixas invisíveis maiores que os objetos. Materiais individuais permitem realce âmbar sem iluminar outros móveis; os objetos sobem discretamente como as fitas e retornam ao sair do mouse. A gaveta mantém sua altura e animação de abertura. Removida a apresentação de painel ao focar as alternativas semânticas de teclado, que agora realçam os objetos físicos.
+
+Build, check e 20 testes passaram. O teste Chrome passou a abrir os três objetos por mouse real, conferindo cursor, rotação e fechamento. Capturas de hover em `tmp/portfolio-browser/hover-*.png`.

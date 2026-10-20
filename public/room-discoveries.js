@@ -57,3 +57,9 @@ dialog.addEventListener('close',()=>{
 });
 dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
 new MutationObserver(()=>{if(document.documentElement.dataset.mode!=='3d')cancelOpening();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-mode']});
+
+// Keyboard access highlights the same physical objects without revealing a menu.
+for(const trigger of document.querySelectorAll('.room-object-access button')){
+ trigger.addEventListener('focus',()=>document.dispatchEvent(new CustomEvent('room:focus',{detail:trigger.dataset.roomInspect||'notebook'})));
+ trigger.addEventListener('blur',()=>document.dispatchEvent(new CustomEvent('room:focus',{detail:null})));
+}

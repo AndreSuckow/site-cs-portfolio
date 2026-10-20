@@ -181,8 +181,6 @@ html[data-mobile-reading] .snes-pad .dock__dpad:has(button:active),html[data-mob
 .notebook-inspector__bible{align-self:center;margin-top:12px;text-decoration:none}
 .notebook-inspector__error{color:var(--amber-400);font:14px/1.5 Inter,sans-serif}
 .notebook-inspector [hidden]{display:none!important}
-.room-object-access:focus-within{position:fixed;inset:auto 16px 16px auto;z-index:50;width:auto;height:auto;max-width:calc(100vw - 32px);padding:12px;clip:auto;clip-path:none;overflow:visible;white-space:normal;display:grid;gap:8px;background:var(--ink-850);border:1px solid var(--ink-600)}
-.room-object-access button{min-height:44px;padding:8px 12px;text-align:left;background:var(--tv-navy);color:var(--tv-paper);border:1px solid var(--ink-600);cursor:pointer;font:14px Inter,sans-serif}
 .drawer-focus{position:fixed;inset:0;z-index:70;pointer-events:auto;background:radial-gradient(ellipse 150px 120px at var(--drawer-x,70%) var(--drawer-y,55%),transparent 0%,#07090d35 50%,#07090dd9 180%);opacity:.18;transition:opacity .38s ease;cursor:wait}
 .drawer-focus[hidden]{display:none}
 .drawer-focus[data-phase="fading"]{opacity:1}

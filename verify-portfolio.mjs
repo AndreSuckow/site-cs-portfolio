@@ -43,7 +43,7 @@ try{
  fs.writeFileSync(path.join(output,'room-discoveries.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  const findRoomTarget=async(label,xs,ys)=>{
   for(const y of ys)for(const x of xs){await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y});if(await evaluate(`!document.querySelector('[data-hud-tooltip]').hidden && document.querySelector('[data-hud-tooltip]').textContent.includes(${JSON.stringify(label)})`))return {x,y};}
-  throw Error('Room target was not reachable through raycast: '+label);
+  throw Error('Room target was not reachable through raycast: '+label+' '+JSON.stringify(page.errors.slice(0,1))+' '+await evaluate('document.querySelector("[data-hud-tooltip]").outerHTML'));
  };
  await findRoomTarget('NTLH',[650,655,660,665,670,675,680],[470,474,478,482,486,490]);
  const drawerHit=await findRoomTarget('Abrir gaveta',[958,964,970,976,982,988,994],[463,469,475,481,487,493,499]);
@@ -84,7 +84,13 @@ try{
  await until('!document.querySelector("#games-notebook").open','notebook closes with Escape');
  await until('document.body.style.overflow!=="hidden"','notebook restores scroll');
  for(const kind of ['bible','pokedex','family']){
-  await evaluate(`document.querySelector('[data-room-inspect="${kind}"]').click()`);
+  const locations={bible:{label:'NTLH',xs:[650,655,660,665,670,675,680],ys:[470,474,478,482,486,490]},pokedex:{label:'Pokédex',xs:[955,960,965,970,975,980],ys:[432,436,440,444,448]},family:{label:'Quadro',xs:[966,970,974,978,982],ys:[398,403,408,413,418]}};
+  const target=locations[kind];const hit=await findRoomTarget(target.label,target.xs,target.ys);
+  assert.equal(await evaluate('document.querySelector("#stage-canvas").style.cursor'),'pointer','Physical object shows a pointer');
+  await wait(250);
+  fs.writeFileSync(path.join(output,'hover-'+kind+'.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+  await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...hit,button:'left',clickCount:1});
+  await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...hit,button:'left',clickCount:1});
   await until(`document.querySelector('#games-notebook').open && document.querySelector('#games-notebook').dataset.object==='${kind}' && document.querySelector('[data-notebook-canvas]').dataset.ready==='true'`,'3D object opens: '+kind);
   await wait(200);
   assert.equal(await evaluate('document.querySelector("#games-notebook").dataset.viewer'),undefined,'Object renderer loaded');
@@ -100,6 +106,11 @@ try{
   await evaluate('document.querySelector("[data-notebook-close]").click()');
   await until('!document.querySelector("#games-notebook").open && document.body.style.overflow!=="hidden"','object closes: '+kind);
  }
+ await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:300,y:300});
+ await until('document.querySelector("[data-hud-tooltip]").hidden','object hover clears after mouse leaves');
+ await evaluate('document.querySelector("[data-room-inspect=pokedex]").focus()');
+ assert.equal(await evaluate('Math.round(document.querySelector(".room-object-access").getBoundingClientRect().width)'),1,'Keyboard access never reveals a button panel');
+ await evaluate('document.querySelector("#stage-canvas").focus()');
  assert.equal(await evaluate('!!document.querySelector("[data-room-discoveries]")'),false,'Explore room button removed');
  await wait(350);
  await evaluate('window.scrollTo(0,document.getElementById("boot").offsetTop*.68)');

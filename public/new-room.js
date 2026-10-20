@@ -99,7 +99,7 @@ export function createNewRoom(T){
  const bibleMap=texture((c,w,h)=>{c.fillStyle='#241b19';c.fillRect(0,0,w,h);c.strokeStyle='#c6a365';c.lineWidth=6;c.strokeRect(20,20,w-40,h-40);c.fillStyle='#d4b578';c.fillRect(w/2-7,50,14,130);c.fillRect(w/2-43,85,86,14);c.textAlign='center';c.font='bold 48px Georgia';c.fillText('BÍBLIA',w/2,255);c.font='28px Georgia';c.fillText('SAGRADA',w/2,300);},512,384);
  const bibleCover=action(plane('Bible gold cover',wx+.01,.773,-.86,.20,.135,material('#ffffff',bibleMap),[-Math.PI/2,0,0],interactive),'bible','Bíblia · examinar em 3D · NTLH');
  // Open red pocket encyclopedia, beside the three cartridges.
- const pokedex=new Group();pokedex.name='Pokéagenda';pokedex.position.set(.76,.51,-.84);pokedex.rotation.y=-.14;root.add(pokedex);
+ const pokedex=new Group();pokedex.name='Pokéagenda';pokedex.position.set(.76,.51,-.84);pokedex.rotation.y=-.14;interactive.add(pokedex);
  const deviceRed=material('#b92c36'),deviceDark=material('#342e39');
  box('Pokeagenda base',0,0,0,.18,.019,.13,deviceRed,pokedex);
  box('Pokeagenda lower screen',-.035,.011,0,.063,.003,.065,material('#87a99a'),pokedex);
@@ -112,14 +112,35 @@ export function createNewRoom(T){
  cylinder('Pokeagenda blue lens',-.067,.015,-.048,.012,.006,material('#52b8dd'),12,pokedex);
  // An original family illustration; no photo or family identity is invented.
  const familyMap=texture((c,w,h)=>{c.fillStyle='#c5c8ac';c.fillRect(0,0,w,h);c.fillStyle='#8b9b7c';c.fillRect(0,h*.7,w,h*.3);for(const [x,y,size,shirt] of [[140,140,1,'#6c8b9a'],[280,135,1,'#c98b74'],[215,225,.65,'#d3b16c']]){c.fillStyle=shirt;c.fillRect(x-42*size,y+40*size,84*size,120*size);c.fillStyle='#c69972';c.beginPath();c.arc(x,y,40*size,0,Math.PI*2);c.fill();c.fillStyle='#514333';c.fillRect(x-40*size,y-32*size,80*size,20*size);}c.fillStyle='#f2e1bc';c.textAlign='center';c.font='bold 24px Georgia';c.fillText('FAMÍLIA',w/2,h-18);},420,380);
- const frame=new Group();frame.name='Family portrait frame';frame.position.set(.94,.64,-1.08);frame.rotation.set(-.12,-.35,0);root.add(frame);
+ const frame=new Group();frame.name='Family portrait frame';frame.position.set(.94,.64,-1.08);frame.rotation.set(-.12,-.35,0);interactive.add(frame);
  box('Family frame backing',0,0,0,.18,.23,.017,endWood,frame);
  plane('Family illustration',0,0,.009,.152,.20,material('#ffffff',familyMap),[0,0,0],frame);
  box('Family frame stand',0,-.07,-.06,.055,.14,.02,endWood,frame);
  box('Family frame foot',0,-.13,-.06,.075,.02,.08,endWood,frame);
- const pickMaterial=new T.BasicMaterial({transparent:true,opacity:0,depthWrite:false});resources.push(pickMaterial);
- const dexHit=action(box('Inspect Pokedex',.76,.55,-.87,.21,.13,.23,pickMaterial,interactive),'pokedex','Pokédex · segurar e girar');dexHit.castShadow=false;dexHit.receiveShadow=false;
- const frameHit=action(box('Inspect family frame',.94,.64,-1.08,.21,.26,.12,pickMaterial,interactive),'family','Quadro da família · segurar e girar');frameHit.rotation.copy(frame.rotation);frameHit.castShadow=false;frameHit.receiveShadow=false;
+ // Pick the visible geometry itself, as with the game cartridges.
+ const bibleObject=new Group();bibleObject.name='Interactive Bible';interactive.add(bibleObject);
+ for(const part of [bible,biblePages,bibleCover])bibleObject.add(part);
+ const discoveries=new Map();let highlighted=null;
+ function discovery(id,object,label,lift=.014){
+  const surfaces=[];
+  object.traverse(mesh=>{if(!mesh.isMesh)return;action(mesh,id,label);mesh.material=mesh.material.clone();resources.push(mesh.material);surfaces.push(mesh.material);});
+  discoveries.set(id,{object,surfaces,restY:object.position.y,lift});
+ }
+ discovery('bible',bibleObject,'Bíblia · examinar em 3D · NTLH');
+ discovery('pokedex',pokedex,'Pokédex · segurar e girar');
+ discovery('family',frame,'Quadro da família · segurar e girar');
+ discovery('notebook',drawer,'Abrir gaveta: caderno de jogos',0);
+ function highlight(id,reduced=false){
+  if(id===highlighted)return;highlighted=id;
+  for(const [key,item] of discoveries){
+   const active=key===id,y=item.restY+(active?item.lift:0);
+   if(T.animate&&!reduced)T.animate(item.object.position,{y,duration:.2,ease:'power2.out',overwrite:'auto'});else item.object.position.y=y;
+   for(const mat of item.surfaces){
+    if(!mat.emissive)continue;mat.emissive.set('#ffb547');
+    if(T.animate&&!reduced)T.animate(mat,{emissiveIntensity:active?.16:0,duration:.2,overwrite:'auto'});else mat.emissiveIntensity=active?.16:0;
+   }
+  }
+ }
  for(let i=0;i<3;i++){
   box('Wardrobe center drawer',wx,.24+i*.155,-.736,.33,.142,.028,oak);
   box('Drawer pull',wx,.24+i*.155,-.713,.09,.014,.018,black);
@@ -278,5 +299,5 @@ export function createNewRoom(T){
    T.animate(drawerNotebook.position,{y:0,z:0,duration:.2,ease:'power2.in',overwrite:true,onComplete(){if(current())T.animate(drawer.position,{z:-.743,duration:.45,ease:'power2.inOut',overwrite:true});}});
   }
  }
- return {root,targets,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
+ return {root,targets:[...new Set(targets)],highlight,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
 }
