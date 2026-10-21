@@ -3,7 +3,34 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {whatsappMessage} from './public/cs-model.js';
+import {createCareerJourney,drawCareerScreen} from './public/career-map.js';
 const html=fs.readFileSync('public/index.html','utf8');
+test('career travel follows the path for two seconds and changes location only on arrival',()=>{
+ const stops=[[-.4,-1.93],[.25,.67],[-.4,3.27]],journey=createCareerJourney(stops);
+ assert(journey.walkTo(1,0));assert.equal(journey.current,0);assert.deepEqual(journey.position,stops[0]);
+ assert.equal(journey.update(1),null);const halfway=journey.position;assert.notDeepEqual(halfway,stops[0]);assert.notDeepEqual(halfway,stops[1]);assert.equal(journey.current,0);
+ assert.equal(journey.update(1),null);assert.deepEqual(journey.position,halfway,'A frozen game clock freezes the walk');
+ journey.update(1.999);assert.equal(journey.current,0);assert.equal(journey.update(2),1);assert.equal(journey.current,1);assert(!journey.moving);assert.deepEqual(journey.position,stops[1]);assert.equal(journey.walkTo(1,3),false);
+});
+test('retargeting a walking character starts from its current position without teleporting',()=>{
+ const journey=createCareerJourney([[-.4,-1.93],[.25,.67],[-.4,3.27]]);journey.walkTo(2,0);journey.update(.8);const before=journey.position;
+ assert(journey.walkTo(1,.8));assert.deepEqual(journey.position,before);journey.update(2.799);assert.equal(journey.current,0);journey.update(2.8+.001);assert.equal(journey.current,1);
+});
+test('career hover highlights a stop without selecting it or changing unrelated hover behavior',()=>{
+ const source=fs.readFileSync('src/engine.js','utf8'),start=source.indexOf('hover(e){let t=e?.id'),end=source.indexOf('addItem(e)',start);
+ const hover=new Function('return function'+source.slice(start+'hover'.length,end))(),selected=[];
+ const item={id:'experiencia/1',kind:'career'},state={hoverId:null,selectable:()=>[item],select:(...args)=>selected.push(args),invalidate(){}};
+ hover.call(state,item);assert.equal(state.hoverId,item.id);assert.equal(selected.length,0);
+ item.kind='select';hover.call(state,null);hover.call(state,item);assert.equal(selected.length,1);
+});
+test('career information stays at the visited company while hovering or walking',()=>{
+ const companies=[0,1,2].map(i=>({id:String(i),phase:'Fase '+i,title:'Local '+i,role:'Cargo '+i,org:'Empresa '+i,period:'2020',start:2020,bullets:[]})),map=createCareerJourney([[-.4,-1.93],[.25,.67],[-.4,3.27]]),text=[],arrivals=[];
+ map.draw=()=>companies.map((_,i)=>({x:i*100,y:200,w:90,h:90}));
+ const game={selected:2,hoverId:'experiencia/2',careerMap:map,assets:{screenshots:{}},addItem(){},onSelect:item=>arrivals.push(item)},helpers={companies,colors:{},Q(){},kv(){},Ev(){},Tv(){},Nv(){},wv(_ctx,value,_x,y){text.push(value);return y+30;}};
+ drawCareerScreen({},game,0,helpers);assert(text.includes('Cargo 0'));assert(!text.includes('Cargo 2'));assert(!map.moving);
+ map.walkTo(2,0);text.length=0;drawCareerScreen({},game,1.9,helpers);assert(text.includes('Cargo 0'));assert.equal(arrivals.length,0);
+ text.length=0;drawCareerScreen({},game,2,helpers);assert(text.includes('Cargo 2'));assert.equal(arrivals.length,1);assert(arrivals[0].label.includes('Empresa 2'));
+});
 test('Projects keeps the cartridge view at every scroll position; Skills stays close to the TV',()=>{
  const source=fs.readFileSync('src/engine.js','utf8'),start=source.indexOf('frame(e,t,n){'),end=source.indexOf('update(e,t,n=!1)',start);
  const frame=new Function('Kh','Uh','return function'+source.slice(start+'frame'.length,end))((from,to,blend)=>({from:from.id,to:to.id,blend}),value=>Math.max(0,Math.min(1,value)));

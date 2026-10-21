@@ -1,9 +1,38 @@
+// Movement uses the game's clock, so pause freezes the two-second journey.
+export function createCareerJourney(stations,{duration=2,roadX=-1.02}={}){
+ let current=0,trip=null,position=[...stations[0]],heading=0;
+ function update(time){
+  if(!trip)return null;
+  const progress=Math.max(0,Math.min(1,(time-trip.start)/duration)),distance=trip.length*progress;
+  let covered=0;
+  for(const segment of trip.segments){
+   if(distance<=covered+segment.length||segment===trip.segments.at(-1)){
+    const fraction=Math.min(1,(distance-covered)/segment.length);position=[segment.a[0]+(segment.b[0]-segment.a[0])*fraction,segment.a[1]+(segment.b[1]-segment.a[1])*fraction];heading=Math.atan2(segment.b[0]-segment.a[0],segment.b[1]-segment.a[1]);break;
+   }covered+=segment.length;
+  }
+  if(progress===1){current=trip.target;position=[...stations[current]];trip=null;return current;}
+  return null;
+ }
+ return {
+  get current(){return current;},get moving(){return !!trip;},get target(){return trip?.target??current;},get position(){return [...position];},get heading(){return heading;},update,
+  walkTo(index,time){
+   if(!Number.isInteger(index)||!stations[index]||trip?.target===index||(!trip&&current===index))return false;
+   update(time);const destination=stations[index],waypoints=[position,[roadX,position[1]],[roadX,destination[1]],destination],segments=[];
+   for(let i=1;i<waypoints.length;i++){const a=[...waypoints[i-1]],b=[...waypoints[i]],length=Math.hypot(b[0]-a[0],b[1]-a[1]);if(length>.00001)segments.push({a,b,length});}
+   trip={start:time,target:index,segments,length:segments.reduce((sum,segment)=>sum+segment.length,0)};return true;
+  }
+ };
+}
+
 export function drawCareerScreen(e,t,n,{companies,colors: X,Q,kv,Ev,wv,Tv,Nv}){
  t.dominant=4;
  Q(e,`NÍVEL ${companies.length}`,48,104,{size:24,bold:true,color:X.violet});
  kv(e,{x:188,y:109,w:360,h:16},8.6,10,X.violet,X.deep);
  Q(e,`XP DESDE ${Math.min(...companies.filter(c=>!c.invitation).map(c=>c.start))}`,564,105,{size:20,color:X.muted});
- const selected=Math.max(0,Math.min(t.selected,companies.length-1)),company=companies[selected],panel={x:48,y:156,w:506,h:548};
+ t.careerMap??=t.createCareerMap();
+ const arrived=t.careerMap.update(n);
+ if(arrived!==null){const location=companies[arrived];t.onSelect({id:'experiencia/'+arrived,kind:'career-arrival',label:'Chegou a '+location.org+'. '+location.role});}
+ const selected=t.careerMap.current,company=companies[selected],panel={x:48,y:156,w:506,h:548};
  Ev(e,panel,X.slate,X.panel);
  Q(e,`${company.phase} · ${company.title}`.toUpperCase(),72,178,{size:20,color:X.sel,max:458});
  let y=wv(e,company.role,72,212,458,{size:28,bold:true,maxLines:2,lineH:34});
@@ -13,24 +42,26 @@ export function drawCareerScreen(e,t,n,{companies,colors: X,Q,kv,Ev,wv,Tv,Nv}){
  Q(e,company.period.toUpperCase(),72,y+40,{size:18,color:X.muted});y+=80;Tv(e,{x:72,y,w:458,h:2},X.deep);y+=18;
  for(const text of company.bullets){if(y>panel.y+panel.h-40)break;Nv(e,'right',72,y+6,12,X.sel);y=wv(e,text,94,y,436,{size:22,color:X.text,maxLines:3,lineH:28})+10;}
  Q(e,'MAPA DA JORNADA',773,168,{size:20,bold:true,color:X.sel,align:'center'});
- t.careerMap??=t.createCareerMap();
- const bounds=t.careerMap.draw(e,{x:568,y:194,w:408,h:460},selected,n,t.reducedMotion);
+ const hover=t.hoverId?.startsWith('experiencia/')?Number(t.hoverId.split('/')[1]):null;
+ const focused=hover??Math.max(0,Math.min(t.selected,companies.length-1));
+ const bounds=t.careerMap.draw(e,{x:568,y:184,w:408,h:514},focused,n,t.reducedMotion);
  companies.forEach((company,index)=>{
-  const rect=bounds[index];t.addItem({id:'experiencia/'+index,rect,kind:'select',label:`${company.phase}: ${company.role}, ${company.org}, ${company.period}`});
+  const rect=bounds[index];t.addItem({id:'experiencia/'+index,rect,kind:'career',label:company.org,tooltip:t.careerMap.moving||index===selected?null:'Clique para caminhar até '+company.org});
   const label=company.invitation?'SUA COMPANHIA':index===0?'MARQ HR':'PILGRIM’S';
-  Q(e,label,rect.x+rect.w/2,rect.y+rect.h-10,{size:14,bold:true,color:index===selected?X.sel:X.text,align:'center',max:145});
+  Q(e,label,rect.x+rect.w/2,rect.y-7,{size:14,bold:true,color:index===selected?X.sel:X.text,align:'center',max:145});
  });
- Q(e,'■ EXPERIÊNCIAS ANTERIORES',580,662,{size:15,color:'#42d68a'});
- Q(e,'■ PRÓXIMA COMPANHIA',580,686,{size:15,color:'#57a8ff'});
+ Q(e,'■ ANTERIORES',580,704,{size:13,color:'#42d68a'});
+ Q(e,'■ PRÓXIMA COMPANHIA',760,704,{size:13,color:'#57a8ff'});
 }
 
 // A real orthographic 3D diorama, composited into the TV's existing canvas.
 export function createCareerMap(T,companies,assets){
  const {Scene,Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,BasicMaterial,CanvasTexture,OrthographicCamera,Renderer,Vector3,SRGB}=T;
  const renderer=new Renderer({alpha:true,antialias:true,preserveDrawingBuffer:true});
- renderer.setSize(480,640);renderer.setPixelRatio(1);renderer.outputColorSpace=SRGB;renderer.setClearColor(0x000000,0);
- const scene=new Scene(),camera=new OrthographicCamera(-2.6,2.6,3.45,-3.45,.1,40);
- camera.position.set(6,7,9);camera.lookAt(0,.2,0);
+ renderer.setSize(408,514);renderer.setPixelRatio(1);renderer.outputColorSpace=SRGB;renderer.setClearColor(0x000000,0);
+ const halfHeight=2.95,halfWidth=halfHeight*408/514;
+ const scene=new Scene(),camera=new OrthographicCamera(-halfWidth,halfWidth,halfHeight,-halfHeight,.1,40);
+ camera.position.set(1.4,10,12);camera.lookAt(0,.24,0);
  const resources=[],materials=new Map(),logos=new Map();
  function mat(color){if(!materials.has(color))materials.set(color,new BasicMaterial({color}));return materials.get(color);}
  function box(parent,x,y,z,w,h,d,color){
@@ -38,15 +69,14 @@ export function createCareerMap(T,companies,assets){
   const faces=Array.isArray(color)?color.map(mat):mat(color),mesh=new Mesh(geometry,faces);mesh.position.set(x,y,z);parent.add(mesh);return mesh;
  }
  const earth=['#314a53','#233742','#5f8670','#253d44','#3a5960','#2b414e'];
- box(scene,0,-.23,0,3.85,.44,3.8,earth);
- box(scene,0,.005,0,3.95,.06,3.9,['#4a7165','#355748','#638a70','#355748','#4a7165','#355748']);
- const points=[[-1.1,-1.12],[1.02,-.12],[-.65,1.22]],buildings=[],flags=[];
- for(let j=0;j<points.length-1;j++){
-  const a=points[j],b=points[j+1],distance=Math.hypot(b[0]-a[0],b[1]-a[1]);
-  for(let k=0;k<=distance;k+=.19){const f=k/distance;box(scene,a[0]+(b[0]-a[0])*f,.055,a[1]+(b[1]-a[1])*f,.13,.045,.13,'#b6b5a5');}
- }
+ box(scene,0,-.23,0,2.65,.44,7.5,earth);
+ box(scene,0,.005,0,2.7,.06,7.6,['#4a7165','#355748','#638a70','#355748','#4a7165','#355748']);
+ const points=[[-.1,-2.6],[.55,0],[-.1,2.6]],stations=points.map(([x,z])=>[x-.3,z+.67]),roadX=-1.02,buildings=[],flags=[];
+ const journey=createCareerJourney(stations,{duration:2,roadX});
+ function path(a,b){const distance=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let step=0;step<=distance;step+=.16){const f=distance?step/distance:0;box(scene,a[0]+(b[0]-a[0])*f,.055,a[1]+(b[1]-a[1])*f,.12,.045,.12,'#b6b5a5');}}
+ path([roadX,stations[0][1]],[roadX,stations.at(-1)[1]]);for(const station of stations)path([roadX,station[1]],station);
  // Quiet landscaping makes the terrain's depth readable without obscuring stops.
- for(const [x,z] of [[-1.6,.25],[1.52,1.35],[.4,-1.6]]){
+ for(const [x,z] of [[1.05,2.1],[-.9,-3.25],[1.05,-1.4]]){
   box(scene,x,.15,z,.045,.3,.045,'#a18e69');box(scene,x,.38,z,.26,.32,.26,['#387563','#275d50','#65a381','#234b43','#46846b','#387563']);
  }
  companies.forEach((company,index)=>{
@@ -68,12 +98,13 @@ export function createCareerMap(T,companies,assets){
   const flag=new Mesh(geometry,new BasicMaterial({color:company.invitation?'#57a8ff':'#42d68a',side:2}));flag.position.set(poleX,0,poleZ);scene.add(flag);flags.push(flag);
   buildings.push(building);
  });
- const avatar=new Group();scene.add(avatar);avatar.rotation.y=Math.atan2(6,9);
- box(avatar,-.075,.09,0,.09,.18,.12,'#283b68');box(avatar,.075,.09,0,.09,.18,.12,'#283b68');
+ const avatar=new Group();scene.add(avatar);avatar.rotation.y=Math.atan2(1.4,12);
+ const leftLeg=box(avatar,-.075,.09,0,.09,.18,.12,'#283b68'),rightLeg=box(avatar,.075,.09,0,.09,.18,.12,'#283b68');
  box(avatar,0,.29,0,.25,.25,.16,['#a96327','#a96327','#ffc56d','#a96327','#ed9c37','#a96327']);
- box(avatar,-.17,.29,0,.075,.22,.09,'#e5a16b');box(avatar,.17,.29,0,.075,.22,.09,'#e5a16b');
+ const leftArm=box(avatar,-.17,.29,0,.075,.22,.09,'#e5a16b'),rightArm=box(avatar,.17,.29,0,.075,.22,.09,'#e5a16b');
  box(avatar,0,.58,0,.37,.37,.2,'#8c6348');
  const marker=box(scene,0,.075,0,1.08,.025,.94,'#ffb547');
+ const focusMarker=box(scene,0,.064,0,1.12,.014,.98,'#7f9cdd');
  function picture(image,parent,x,y,z,w,h,key){
   if(!image||logos.has(key))return;
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;
@@ -94,9 +125,14 @@ export function createCareerMap(T,companies,assets){
   }
  }
  return {
-  draw(ctx,rect,selected,time,reduced){
-   syncArt();selected=Math.max(0,Math.min(companies.length-1,selected));
-   const [x,z]=points[selected];avatar.position.set(x-.6,reduced?0:Math.sin(time*3)*.015,z+.59);marker.position.set(x,.075,z);
+  get current(){return journey.current;},get moving(){return journey.moving;},walkTo(index,time){return journey.walkTo(index,time);},update(time){return journey.update(time);},
+  draw(ctx,rect,focused,time,reduced){
+   syncArt();focused=Math.max(0,Math.min(companies.length-1,focused));
+   const [x,z]=journey.position,walking=journey.moving,step=walking&&!reduced?Math.sin(time*15)*.55:0;
+   avatar.position.set(x,walking&&!reduced?Math.abs(Math.sin(time*15))*.018:0,z);avatar.rotation.y=walking?journey.heading:Math.atan2(1.4,12);
+   leftLeg.rotation.x=step;rightLeg.rotation.x=-step;leftArm.rotation.x=-step*.7;rightArm.rotation.x=step*.7;
+   const [selectedX,selectedZ]=points[journey.current];marker.position.set(selectedX,.075,selectedZ);
+   focusMarker.visible=focused!==journey.current;focusMarker.position.set(points[focused][0],.064,points[focused][1]);
    flags.forEach((flag,index)=>{const attr=flag.geometry.attributes.position;for(let row=0;row<2;row++)for(let col=0;col<=12;col++){const f=col/12;attr.setZ(row*13+col,reduced?0:Math.sin(time*5-f*7+index)*.075*f);}attr.needsUpdate=true;});
    renderer.render(scene,camera);ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(renderer.domElement,rect.x,rect.y,rect.w,rect.h);ctx.restore();
    return points.map(([x,z])=>{const p=new Vector3(x,.38,z).project(camera);return {x:rect.x+(p.x+1)/2*rect.w-48,y:rect.y+(1-p.y)/2*rect.h-52,w:104,h:115};});

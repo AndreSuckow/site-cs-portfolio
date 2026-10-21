@@ -26,7 +26,7 @@ try{
  browser=await connect(endpoint);
  const targets=await (await fetch(`http://${new URL(endpoint).host}/json/list`)).json();
  page=await connect(targets.find(target=>target.type==='page').webSocketDebuggerUrl);
- await page.send('Page.enable');await page.send('Runtime.enable');
+ await page.send('Page.enable');await page.send('Runtime.enable');await page.send('Network.enable');
  await page.send('Page.addScriptToEvaluateOnNewDocument',{source:'try{localStorage.setItem("andre:prefs",JSON.stringify({...JSON.parse(localStorage.getItem("andre:prefs")||"{}"),mode:"2d"}))}catch{}'});
  const evaluate=async expression=>{const result=await page.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
  const until=async(expression,label)=>{for(let i=0;i<150;i++){if(await evaluate(expression))return;await wait(60);}throw Error(`Timed out: ${label}`);};
@@ -97,12 +97,15 @@ try{
  await wait(200);const displayBefore=await notebookImage();await wait(350);assert.notEqual(await notebookImage(),displayBefore,'Discman LCD scrolls the song title');
  fs.writeFileSync(path.join(output,'discman.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  const discmanCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2-(document.querySelector(".notebook-inspector__actions").getBoundingClientRect().width+32)/2,y:r.top+r.height/2,scale:r.height/230}})()');
+ await page.send('Network.setBlockedURLs',{urls:['*audio/discman/*.mp3*']});
  let hardwarePlay=null;for(const dy of [32,36,40,44]){for(const dx of [44,48,52,56]){const point={x:discmanCenter.x+dx*discmanCenter.scale,y:discmanCenter.y+dy*discmanCenter.scale};await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',...point});if(await evaluate('document.querySelector("[data-notebook-canvas]").style.cursor==="pointer"')){hardwarePlay=point;break;}}if(hardwarePlay)break;}
  assert(hardwarePlay,'Physical play/pause button is reachable');await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...hardwarePlay,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...hardwarePlay,button:'left',clickCount:1});
  await until('document.querySelector("[data-discman-status]").textContent.includes("MP3 autorizado")','Missing MP3 is explained');
  assert.equal(await evaluate('document.querySelector("[data-discman-toggle]").getAttribute("aria-pressed")'),'false','Missing audio never claims playback');
- await evaluate('document.querySelectorAll("[data-discman-track]")[1].click();document.querySelector("[data-discman-toggle]").click()');
- await until('document.querySelector("[data-discman-status]").textContent.includes("reservada")','Four music choices remain reserved');
+ await page.send('Network.setBlockedURLs',{urls:[]});
+ const reservedTrack=JSON.parse(fs.readFileSync('public/audio/discman/playlist.json','utf8')).findIndex(track=>!track.file);
+ if(reservedTrack>=0){await evaluate(`document.querySelectorAll('[data-discman-track]')[${reservedTrack}].click();document.querySelector('[data-discman-toggle]').click()`);
+ await until('document.querySelector("[data-discman-status]").textContent.includes("reservada")','Unassigned music slot remains reserved');}
  await evaluate('document.querySelector("[data-notebook-close]").click()');await until('!document.querySelector("#games-notebook").open && document.body.style.overflow!=="hidden"','Discman closes');await wait(800);
  for(const kind of ['bible','pokedex','family']){
   const locations={bible:{label:'NTLH',xs:[650,655,660,665,670,675,680],ys:[470,474,478,482,486,490]},pokedex:{label:'Pokédex',xs:[955,960,965,970,975,980],ys:[432,436,440,444,448]},family:{label:'Quadro',xs:[966,970,974,978,982],ys:[398,403,408,413,418]}};
@@ -153,13 +156,20 @@ try{
  await until('document.querySelector("[data-hud-label]").textContent==="EXPERIÊNCIA"','SNES X advances a section');
  await wait(1800);
  fs.writeFileSync(path.join(output,'career-map-marq.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
- await key('ArrowDown');
- await until('document.querySelector("#announcer").textContent.includes("Pilgrim")','3D map selects the second company');
- await wait(250);
+ const mapAnnouncement=await evaluate('document.querySelector("#announcer").textContent');
+ const companyHit=await findRoomTarget('Pilgrim',[820,860,900,940,980,1020,1060,1100,1140,1180,1220],[250,300,350,400,450,500,550,600,650,700,750,800]);await wait(250);
+ assert.equal(await evaluate('document.querySelector("#announcer").textContent'),mapAnnouncement,'Hover does not select or move the character');
+ const walkStarted=Date.now();await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...companyHit,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...companyHit,button:'left',clickCount:1});
+ await until('document.querySelector("#announcer").textContent.includes("Caminhando")','map walk starts on click');await wait(800);
+ assert.equal(await evaluate('document.querySelector("[data-hud-tooltip]").hidden'),true,'Hover hint never covers the walking character');
+ fs.writeFileSync(path.join(output,'career-map-walking.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await until('document.querySelector("#announcer").textContent.includes("Chegou a Pilgrim")','second company information appears on arrival');assert(Date.now()-walkStarted>=1800,'Journey lasts two seconds');
+ await wait(100);
  fs.writeFileSync(path.join(output,'career-map-pilgrims.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await key('ArrowDown');
- await until('document.querySelector("#announcer").textContent.includes("Sua companhia")','3D map selects the next company');
- await wait(250);
+ await key('Enter');
+ await until('document.querySelector("#announcer").textContent.includes("Chegou a Sua companhia")','keyboard activation walks to the next company');
+ await wait(100);
  fs.writeFileSync(path.join(output,'career-map-next.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await key('ArrowLeft');
  await until('document.querySelector("[data-hud-label]").textContent==="SOBRE"','SNES Y returns a section');

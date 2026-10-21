@@ -22,7 +22,8 @@ test('second drawer waits for its animation and opens only the Discman controls'
 test('Discman supports playback, pause, missing audio and reserved tracks without false playback',async()=>{
  const dom=new JSDOM('<body>'+html+'</body>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document;
  let audio;class FakeAudio extends w.EventTarget{constructor(){super();this.paused=true;this.ended=false;this.src='';audio=this;}pause(){this.paused=true;this.dispatchEvent(new w.Event('pause'));}async play(){if(this.fail)throw Error('missing');this.paused=false;this.dispatchEvent(new w.Event('play'));}load(){}removeAttribute(){this.src='';}}
- w.Audio=FakeAudio;w.matchMedia=()=>({matches:false});w.fetch=async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('public/audio/discman/playlist.json','utf8'))});
+ const playlist=[{title:'CPM 22 - Dias Atrás',file:'01-cpm22-dias-atras.mp3'},...Array.from({length:4},(_,i)=>({title:`Faixa ${i+2} · a escolher`,file:null}))];
+ w.Audio=FakeAudio;w.matchMedia=()=>({matches:false});w.fetch=async()=>({ok:true,json:async()=>playlist});
  w.eval(fs.readFileSync('public/discman-player.js','utf8').replace('export const','const').replaceAll('import.meta.url',"'http://localhost:4173/discman-player.js'"));
  const modal=d.getElementById('games-notebook');modal.setAttribute('open','');modal.dataset.object='discman';d.dispatchEvent(new w.CustomEvent('room:notebook-view',{detail:'discman'}));await new Promise(r=>setTimeout(r,0));
  assert.equal(d.querySelectorAll('[data-discman-track]').length,5);const toggle=d.querySelector('[data-discman-toggle]');toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused);assert.equal(toggle.getAttribute('aria-pressed'),'true');assert(audio.src.endsWith('/audio/discman/01-cpm22-dias-atras.mp3'));
