@@ -240,9 +240,24 @@ try{
  fs.writeFileSync(path.join(output,'cs-hobbies-3d.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await evaluate(`document.querySelector('.site-nav a[href="#projetos"]').click()`);
  await until('document.querySelector("[data-hud-label]").textContent==="PROJETOS"','Projects active on the TV');
- await evaluate(`document.querySelector('[data-cart="onboarding"]').click()`);
- await wait(2400);
+ await wait(1600);
+ fs.writeFileSync(path.join(output,'projects-cartridges.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ const cartXs=Array.from({length:16},(_,i)=>800+i*20),cartYs=Array.from({length:10},(_,i)=>520+i*20);
+ const cartridgeHit=await findRoomTarget('MarQPonto',cartXs,cartYs);
+ await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...cartridgeHit,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...cartridgeHit,button:'left',clickCount:1});
+ await until('document.querySelector("#announcer").textContent.includes("Inserindo o cartucho")','physical cartridge insertion begins');await wait(120);
+ fs.writeFileSync(path.join(output,'project-inserting.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await until('document.querySelector("#announcer").textContent.includes("carregado.")','project loads after insertion');await wait(1400);
  fs.writeFileSync(path.join(output,'cs-project-3d.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await evaluate('document.querySelector("[data-action=eject]").click()');
+ await until('document.querySelector("#announcer").textContent.includes("Cartucho ejetado")','eject returns the cartridge');
+ await findRoomTarget('MarQPonto',cartXs,cartYs);
+ fs.writeFileSync(path.join(output,'project-ejected.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await evaluate(`document.querySelector('.site-nav a[href="#skills"]').click()`);await until('document.documentElement.dataset.chapter==="skills"','Skills after ejection');await wait(1500);
+ fs.writeFileSync(path.join(output,'skills-close-up.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await evaluate('window.scrollTo(0,document.getElementById("projetos").offsetTop+innerHeight*.08)');await until('document.documentElement.dataset.chapter==="projetos"','scroll enters Projects');await wait(1500);
+ await findRoomTarget('MarQPonto',cartXs,cartYs);
+ fs.writeFileSync(path.join(output,'projects-scroll-browse.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  for(const chapter of ['sobre','experiencia','projetos','skills','hobbies','contato']){
   await evaluate(`document.querySelector('.site-nav a[href="#${chapter}"]').click()`);
   await until(`document.documentElement.dataset.chapter==='${chapter}' && document.documentElement.dataset.tvMenu==='visible'`,'TV owns navigation: '+chapter);

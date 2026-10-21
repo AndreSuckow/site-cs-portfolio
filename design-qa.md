@@ -94,3 +94,9 @@ Chrome verificou ausência de fundo e borda na camada, blur de 9 px, clique na g
 Removidos do HTML e do controlador os modos Girar/Mover e os botões de setas/Reposicionar. Arraste sempre gira. + e − ficam à direita, posicionados a partir dos limites projetados do objeto e contidos na tela; a câmera reserva espaço para eles. Link da Bíblia no mesmo conjunto lateral. CSS do portfólio agora recebe a versão do build na URL para evitar apresentação antiga em cache.
 
 Build, check e 26 testes passaram. Chrome verificou ausência dos controles removidos, zoom por +/−, giro com mouse e toque, ações laterais dentro da tela, link correto da Bíblia e controles físicos do Discman. Capturas `inspect-bible.png` e `games-notebook-mobile.png` inspecionadas sem erros de execução.
+
+## Projetos com seleção física das fitas — 20/10/2026
+
+Projetos mantém a mesa aberta independentemente do progresso interno do scroll; Skills enquadra a TV de perto. A seção ativa passou a orientar a câmera. A inserção aguarda o enquadramento completo do console e termina antes do carregamento/aproximação. Ejetar retorna à mesa antes da animação física. Entrar novamente em Projetos limpa a aproximação anterior.
+
+28 testes passaram, incluindo contratos de câmera em cinco posições de scroll, mobile e movimento reduzido, e a ordem de inserção, carregamento, aproximação e ejeção. Chrome clicou na fita real, acompanhou o carregamento, ejetou e encontrou a fita clicável novamente. Também verificou entrada por scroll. Capturas de seleção, inserção, detalhe, ejeção e Skills (`projects-cartridges.png`, `project-inserting.png`, `cs-project-3d.png`, `project-ejected.png`, `skills-close-up.png`) inspecionadas; nenhuma exceção de execução.

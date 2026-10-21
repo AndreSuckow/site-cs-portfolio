@@ -4,6 +4,29 @@ import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {whatsappMessage} from './public/cs-model.js';
 const html=fs.readFileSync('public/index.html','utf8');
+test('Projects keeps the cartridge view at every scroll position; Skills stays close to the TV',()=>{
+ const source=fs.readFileSync('src/engine.js','utf8'),start=source.indexOf('frame(e,t,n){'),end=source.indexOf('update(e,t,n=!1)',start);
+ const frame=new Function('Kh','Uh','return function'+source.slice(start+'frame'.length,end))((from,to,blend)=>({from:from.id,to:to.id,blend}),value=>Math.max(0,Math.min(1,value)));
+ const views=Object.fromEntries(['wide','screen','desk','door'].map(id=>[id,{id}]));
+ const pose=result=>result.blend===1?result.to:result.from;
+ for(const reduced of [false,true])for(const mobileReading of [false,true])for(const progress of [0,.08,.5,.95,1]){
+  const camera={views,goal:{},reduced,mobileReading};
+  assert.equal(pose(frame.call(camera,'projetos',progress,0)),'desk');
+  assert.equal(pose(frame.call(camera,'projetos',progress,1)),'screen');
+  assert.equal(pose(frame.call(camera,'skills',progress,0)),'screen');
+ }
+});
+test('project loading and camera dive wait for the visible cartridge insertion; ejection waits for the shelf',async()=>{
+ const source=fs.readFileSync('src/engine.js','utf8'),start=source.lastIndexOf('async function I(e){'),end=source.indexOf('function ie(){',start);
+ const events=[],M={started:true,focus:1},O={active:'projetos'},g={tab:'projetos',setTab(value){this.tab=value;},setMode(){},setCart(value){this.cart=value;if(value)events.push(value.phase);},invalidate(){}},k={eject(){},insert(){},staticBurst(){},select(){}},b={static(){}},C={blinkLed(){}},D={shake(){}};
+ let ready,inserted;const w={busy:false,inserted:null,insert:async slug=>{events.push('insert');await new Promise(resolve=>{inserted=()=>{w.inserted={slug};resolve();};});},eject:async()=>{events.push('eject');w.inserted=null;}};
+ const xi={to:async(target,options)=>{Object.assign(target,options.focus===undefined?{p:options.p}:{focus:options.focus});options.onUpdate?.();if(options.focus===1)events.push('close-up');}};
+ const factory=new Function('M','O','g','w','k','b','C','D','xi','showProjectShelf','projectShelfReady','n','SC','o','Fh','Ah','te',`let projectBusy=false;${source.slice(start,end)}return {insert:I,eject:L};`);
+ const actions=factory(M,O,g,w,k,b,C,D,xi,()=>{M.focus=0;events.push('shelf');},()=>new Promise(resolve=>{ready=()=>resolve(true);}),()=>{},x=>x,false,{cart:{loading:.9}},[{slug:'onboarding',title:'Projeto',summary:'Resumo'}],()=>{});
+ const inserting=actions.insert('onboarding');assert.deepEqual(events,['shelf']);ready();await new Promise(resolve=>setTimeout(resolve,0));assert.deepEqual(events,['shelf','insert']);assert.equal(M.focus,0);
+ inserted();await inserting;assert.deepEqual(events,['shelf','insert','loading','ready','close-up']);assert.equal(M.focus,1);
+ const ejecting=actions.eject();assert.equal(M.focus,0);assert(!events.includes('eject'));ready();await ejecting;assert.equal(events.at(-1),'eject');assert.equal(w.inserted,null);
+});
 function bootFixture({webgl=true,deferred=false}={}){
  const dom=new JSDOM(html,{url:'http://localhost:4173/',runScripts:'outside-only'}),w=dom.window;
  w.localStorage.setItem('andre:prefs',JSON.stringify({mode:'2d',sound:false,crt:false}));
