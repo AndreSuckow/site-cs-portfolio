@@ -7,7 +7,8 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const renderer=new Renderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.outputColorSpace=SRGB;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0,0);
  const scene=new Scene(),book=new Group(),camera=new PerspectiveCamera(38,1,.1,30);scene.add(book);camera.position.set(0,0,6.2);
  scene.add(new HemisphereLight(0xfff4df,0x323b59,1.6));const key=new DirectionalLight(0xfff1d9,3);key.position.set(-3,5,6);scene.add(key);const fill=new DirectionalLight(0xb5cdff,.7);fill.position.set(4,0,-2);scene.add(fill);
- const resources=[],materials=[],listeners=[];let active=false,frame=0,mode='rotate',zoom=1,panX=0,panY=0,distance=6.2;
+ const resources=[],materials=[],listeners=[];let active=false,frame=0,zoom=1,distance=6.2,offsetX=0;
+ const actions=dialog.querySelector('.notebook-inspector__actions');let lastLayout='';
  const pointers=new Map(),ray=new Raycaster(),ndc=new Vector2();
  const material=options=>{const m=new Material({roughness:.72,metalness:.04,...options});materials.push(m);return m;};
  function box(w,h,d,z,m){const geometry=new BoxGeometry(w,h,d);resources.push(geometry);const mesh=new Mesh(geometry,m);mesh.position.z=z;book.add(mesh);return mesh;}
@@ -73,11 +74,19 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const discman=dialog.dataset.object==='discman';
  const displays=[];if(discman)book.traverse(mesh=>{if(mesh.userData.discmanScreen)displays.push(mesh.material.map);});
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
- function render(time=0){frame=0;if(!active)return;if(discman){for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}camera.zoom=zoom;camera.position.set(panX,panY,distance);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman)schedule();}
+ function render(time=0){frame=0;if(!active)return;if(discman){for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}camera.zoom=zoom;camera.position.set(offsetX,0,distance);camera.updateProjectionMatrix();renderer.render(scene,camera);placeActions();if(discman)schedule();}
  function schedule(){if(active&&!frame)frame=requestAnimationFrame(render);}
- function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);const aspect=r.width/r.height;camera.aspect=aspect;distance=Math.max(6.2,2.05/(Math.tan(camera.fov*Math.PI/360)*aspect));schedule();}
- function reset(){book.rotation.set(.24,-.46,-.035);zoom=1;panX=panY=0;schedule();}
- function setMode(next){mode=next;canvas.dataset.tool=mode;for(const button of dialog.querySelectorAll('[data-notebook-tool]'))button.setAttribute('aria-pressed',String(button.dataset.notebookTool===mode));}
+ function placeActions(){
+  const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,zoom,r.width,r.height].join('/');
+  if(signature===lastLayout)return;lastLayout=signature;
+  const bounds=new Box3().setFromObject(book);let right=-Infinity,top=Infinity,bottom=-Infinity;
+  for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
+   const point=new Vector3(x,y,z).project(camera);right=Math.max(right,r.left+(point.x+1)*r.width/2);const py=r.top+(1-point.y)*r.height/2;top=Math.min(top,py);bottom=Math.max(bottom,py);
+  }
+  const a=actions.getBoundingClientRect();actions.style.left=Math.max(12,Math.min(r.right-a.width-12,right+18))+'px';actions.style.top=clamp((top+bottom)/2,20+a.height/2,r.bottom-20-a.height/2)+'px';
+ }
+ function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);const aspect=r.width/r.height;camera.aspect=aspect;const reserved=actions.getBoundingClientRect().width+32;distance=Math.max(6.2,2.05/(Math.tan(camera.fov*Math.PI/360)*Math.max(.1,(r.width-reserved)/r.height)));offsetX=distance*Math.tan(camera.fov*Math.PI/360)*aspect*reserved/r.width;lastLayout='';schedule();}
+ function reset(){book.rotation.set(.24,-.46,-.035);zoom=1;schedule();}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
  function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return ray.intersectObject(book,true);}
  function hit(e){return intersections(e).length>0;}
@@ -92,7 +101,6 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   if(buttonPress&&Math.hypot(e.clientX-buttonPress.x,e.clientY-buttonPress.y)>8)buttonPress=null;
   const dx=e.clientX-before.x,dy=e.clientY-before.y;
   if(pointers.size===2){const other=[...pointers.entries()].find(([id])=>id!==e.pointerId)[1],oldDistance=Math.hypot(before.x-other.x,before.y-other.y),distance=Math.hypot(e.clientX-other.x,e.clientY-other.y);zoom=clamp(zoom*distance/Math.max(1,oldDistance),.65,3.5);}
-  else if(mode==='move'||e.shiftKey){panX-=dx/canvas.clientHeight*4.24/zoom;panY+=dy/canvas.clientHeight*4.24/zoom;}
   else{book.rotation.y+=dx*.009;book.rotation.x=clamp(book.rotation.x+dy*.007,-1.35,1.35);}
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});schedule();
  });
@@ -101,16 +109,15 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  listen(canvas,'wheel',e=>{if(!active)return;e.preventDefault();zoom=clamp(zoom*Math.exp(-e.deltaY*.001),.65,3.5);schedule();},{passive:false});
  listen(canvas,'keydown',e=>{
   if(e.altKey||e.ctrlKey||e.metaKey)return;const arrows={ArrowLeft:[-.18,0],ArrowRight:[.18,0],ArrowUp:[0,-.14],ArrowDown:[0,.14]};
-  if(arrows[e.key]){e.preventDefault();const [x,y]=arrows[e.key];if(mode==='move'){panX+=x;panY-=y;}else{book.rotation.y+=x;book.rotation.x=clamp(book.rotation.x+y,-1.35,1.35);}schedule();}
+  if(arrows[e.key]){e.preventDefault();const [x,y]=arrows[e.key];book.rotation.y+=x;book.rotation.x=clamp(book.rotation.x+y,-1.35,1.35);schedule();}
   if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')reset();else{zoom=clamp(zoom*(e.key==='-'?.85:1.15),.65,3.5);schedule();}}
  });
- for(const button of dialog.querySelectorAll('[data-notebook-tool]'))listen(button,'click',()=>setMode(button.dataset.notebookTool));
  for(const button of dialog.querySelectorAll('[data-notebook-view]'))listen(button,'click',()=>{
-  switch(button.dataset.notebookView){case'reset':reset();break;case'in':zoom=clamp(zoom*1.25,.65,3.5);break;case'out':zoom=clamp(zoom/1.25,.65,3.5);break;case'left':book.rotation.y-=.28;break;case'right':book.rotation.y+=.28;break;}schedule();
+  switch(button.dataset.notebookView){case'in':zoom=clamp(zoom*1.25,.65,3.5);break;case'out':zoom=clamp(zoom/1.25,.65,3.5);break;}schedule();
  });
- const observer=new ResizeObserver(fit);observer.observe(canvas);reset();setMode('rotate');
+ const observer=new ResizeObserver(fit);observer.observe(canvas);reset();
  return {
-  start(){active=true;canvas.dataset.ready='true';reset();setMode('rotate');fit();},
+  start(){active=true;canvas.dataset.ready='true';reset();fit();},
   stop(){active=false;cancelAnimationFrame(frame);frame=0;for(const id of pointers.keys())if(canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);pointers.clear();canvas.classList.remove('is-held');},
   dispose(){this.stop();observer.disconnect();for(const remove of listeners)remove();for(const value of resources)value.dispose();for(const value of materials)value.dispose();renderer.dispose();}
  };

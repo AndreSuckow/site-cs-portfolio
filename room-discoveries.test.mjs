@@ -3,6 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
 const html=fs.readFileSync('src/room-discoveries.html','utf8');
+test('inspection has only plus/minus manipulation controls and the Bible link in the same side actions',()=>{
+ const dom=new JSDOM(html),d=dom.window.document;
+ assert.deepEqual([...d.querySelectorAll('.notebook-inspector__tools button')].map(button=>button.dataset.notebookView),['in','out']);
+ assert.equal(d.querySelectorAll('[data-notebook-tool],[data-notebook-view="left"],[data-notebook-view="right"],[data-notebook-view="reset"]').length,0);
+ assert(d.querySelector('.notebook-inspector__actions [data-room-bible]'));dom.window.close();
+});
 test('second drawer waits for its animation and opens only the Discman controls',()=>{
  const dom=new JSDOM('<html data-mode="3d"><body>'+html+'</body></html>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document;
  w.matchMedia=()=>({matches:false});w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};

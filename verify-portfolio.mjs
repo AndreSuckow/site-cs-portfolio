@@ -60,6 +60,8 @@ try{
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".notebook-inspector__viewport")).borderTopWidth'),'0px');
   assert.equal(await evaluate('getComputedStyle(document.querySelector("#games-notebook"),"::backdrop").backdropFilter'),'blur(9px)','Existing room is blurred');
   assert.equal(await evaluate('document.querySelector("[data-notebook-close]").textContent.includes("Voltar")'),true);
+  assert.equal(await evaluate('document.querySelectorAll(".notebook-inspector__tools button").length'),2,'Only plus/minus controls remain');
+  assert.equal(await evaluate('document.querySelectorAll("[data-notebook-tool],[data-notebook-view=reset],[data-notebook-view=left],[data-notebook-view=right]").length'),0);
  await wait(250);
  assert.equal(await evaluate('document.querySelectorAll(".games-notebook__completed s").length'),4);
  assert.equal(await evaluate('document.querySelectorAll("#games-pending-title + ul li").length'),9);
@@ -67,7 +69,7 @@ try{
  const notebookImage=()=>evaluate('document.querySelector("[data-notebook-canvas]").toDataURL()');
  const initialNotebook=await notebookImage();
  const untilNotebookImage=async expected=>{for(let i=0;i<60;i++){if(await notebookImage()===expected)return;await wait(60);}assert.fail('Notebook did not return to its original readable pose');};
- const notebookCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()');
+ const notebookCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2-(document.querySelector(".notebook-inspector__actions").getBoundingClientRect().width+32)/2,y:r.top+r.height/2}})()');
  await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',...notebookCenter});
  await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...notebookCenter,button:'left',clickCount:1});
  await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:notebookCenter.x+100,y:notebookCenter.y+32,button:'left',buttons:1});
@@ -75,11 +77,11 @@ try{
  await wait(150);
  assert.notEqual(await notebookImage(),initialNotebook,'Dragging rotates real 3D notebook geometry');
  fs.writeFileSync(path.join(output,'games-notebook-rotated.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
- await evaluate('document.querySelector("[data-notebook-view=reset]").click()');await wait(100);
+ await evaluate('document.querySelector("[data-notebook-canvas]").focus()');await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home',code:'Home',windowsVirtualKeyCode:36});await wait(100);
  await untilNotebookImage(initialNotebook);
- await evaluate('document.querySelector("[data-notebook-view=right]").click()');await wait(100);
- assert.notEqual(await notebookImage(),initialNotebook,'Notebook can rotate without dragging');
- await evaluate('document.querySelector("[data-notebook-view=reset]").click();document.querySelector("[data-notebook-canvas]").focus()');await wait(100);
+ await evaluate('document.querySelector("[data-notebook-view=in]").click()');await wait(100);
+ assert.notEqual(await notebookImage(),initialNotebook,'Plus button zooms the notebook');
+ await evaluate('document.querySelector("[data-notebook-view=out]").click();document.querySelector("[data-notebook-canvas]").focus()');await wait(100);await untilNotebookImage(initialNotebook);
  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});await wait(100);
  assert.notEqual(await notebookImage(),initialNotebook,'Keyboard arrows rotate the notebook');
  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home',code:'Home',windowsVirtualKeyCode:36});await wait(100);
@@ -94,7 +96,7 @@ try{
  await until('document.querySelector("#games-notebook").open && document.querySelector("#games-notebook").dataset.object==="discman" && document.querySelectorAll("[data-discman-track]").length===5','Discman and five track positions');
  await wait(200);const displayBefore=await notebookImage();await wait(350);assert.notEqual(await notebookImage(),displayBefore,'Discman LCD scrolls the song title');
  fs.writeFileSync(path.join(output,'discman.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
- const discmanCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,scale:r.height/230}})()');
+ const discmanCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2-(document.querySelector(".notebook-inspector__actions").getBoundingClientRect().width+32)/2,y:r.top+r.height/2,scale:r.height/230}})()');
  let hardwarePlay=null;for(const dy of [32,36,40,44]){for(const dx of [44,48,52,56]){const point={x:discmanCenter.x+dx*discmanCenter.scale,y:discmanCenter.y+dy*discmanCenter.scale};await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',...point});if(await evaluate('document.querySelector("[data-notebook-canvas]").style.cursor==="pointer"')){hardwarePlay=point;break;}}if(hardwarePlay)break;}
  assert(hardwarePlay,'Physical play/pause button is reachable');await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...hardwarePlay,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...hardwarePlay,button:'left',clickCount:1});
  await until('document.querySelector("[data-discman-status]").textContent.includes("MP3 autorizado")','Missing MP3 is explained');
@@ -114,9 +116,10 @@ try{
   await wait(200);
   assert.equal(await evaluate('document.querySelector("#games-notebook").dataset.viewer'),undefined,'Object renderer loaded');
   assert.equal(await evaluate('document.querySelector("[data-room-bible]").hidden'),kind!=='bible');
+  assert.equal(await evaluate('(()=>{const r=document.querySelector(".notebook-inspector__actions").getBoundingClientRect();return r.left>innerWidth/2 && r.right<=innerWidth && r.top>=0 && r.bottom<=innerHeight})()'),true,'Actions stay to the right and inside the viewport');
   if(kind==='bible')assert.equal(await evaluate('document.querySelector("[data-room-bible]").href'),'https://www.bibliaonline.com.br/ntlh/livros');
   const beforeObject=await notebookImage();
-  const center=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()');
+  const center=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2-(document.querySelector(".notebook-inspector__actions").getBoundingClientRect().width+32)/2,y:r.top+r.height/2}})()');
   await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...center,button:'left',clickCount:1});
   await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:center.x+80,y:center.y+25,button:'left',buttons:1});
   await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:center.x+80,y:center.y+25,button:'left',clickCount:1});await wait(100);
@@ -200,12 +203,13 @@ try{
  await evaluate('document.querySelector("[data-room-notebook]").click()');
  await until('document.querySelector("#games-notebook").open','mobile notebook opens');
  await until('document.querySelector("[data-notebook-canvas]").dataset.ready==="true"','mobile 3D notebook ready');await wait(150);
- const mobileNotebook=await notebookImage(),touchCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()');
+ const mobileNotebook=await notebookImage(),touchCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2-(document.querySelector(".notebook-inspector__actions").getBoundingClientRect().width+32)/2,y:r.top+r.height/2}})()');
  await page.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...touchCenter,id:1}]});
  await page.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:touchCenter.x+60,y:touchCenter.y+15,id:1}]});
  await page.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await wait(150);
  assert.notEqual(await notebookImage(),mobileNotebook,'Touch drag rotates the notebook on mobile');
  assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),true,'Notebook fits mobile width');
+ assert.equal(await evaluate('(()=>{const r=document.querySelector(".notebook-inspector__actions").getBoundingClientRect();return r.right<=innerWidth && r.top>=0 && r.bottom<=innerHeight})()'),true,'Mobile zoom controls stay on screen');
  fs.writeFileSync(path.join(output,'games-notebook-mobile.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await evaluate('document.querySelector("[data-notebook-close]").click()');
  await until('document.body.style.overflow!=="hidden"','mobile notebook restores scroll');

@@ -11,7 +11,7 @@ function openNotebook(kind='notebook'){
  activeObject=kind;opening=true;dialog.querySelector('[data-discman-player]').hidden=kind!=='discman';
  const item=objects[kind];dialog.querySelector('#notebook-title').textContent=item.title;dialog.querySelector('#notebook-description').textContent=item.hint;dialog.querySelector('[data-notebook-canvas]').setAttribute('aria-label',item.label+' em 3D. Arraste ou use as setas para girar. Mais e menos ajustam o zoom; Home reposiciona.');dialog.querySelector('.notebook-inspector__text').hidden=kind!=='notebook';dialog.querySelector('[data-room-bible]').hidden=kind!=='bible';dialog.querySelector('.notebook-inspector__error').hidden=true;dialog.dataset.object=kind;
  dialog.querySelector('.eyebrow').textContent={notebook:'Super Nintendo · Minhas aventuras',bible:'Leitura e fé',pokedex:'Coleção de jogos',family:'Memórias de família',discman:'Minha trilha sonora'}[kind];
- dialog.querySelector('.notebook-inspector__tools').setAttribute('aria-label','Manusear '+item.label);
+ dialog.querySelector('.notebook-inspector__tools').setAttribute('aria-label','Zoom de '+item.label);
  const actions={left:'Girar para a esquerda',right:'Girar para a direita',in:'Aproximar',out:'Afastar',reset:'Reposicionar'};
  dialog.querySelectorAll('[data-notebook-view]').forEach(button=>button.setAttribute('aria-label',actions[button.dataset.notebookView]+': '+item.label));
  previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;

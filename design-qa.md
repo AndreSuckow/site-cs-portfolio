@@ -88,3 +88,9 @@ Build com base do GitHub Pages, check e 25 testes passaram. Chrome foi iniciado 
 Removida a apresentação de painel da inspeção. Canvas transparente ocupa a tela sobre o quarto existente, com backdrop apenas desfocado. Câmera em perspectiva, luz hemisférica/direcionais, materiais de superfície e inclinação inicial mostram volume; enquadramento se adapta à largura da tela. Voltar e Escape restauram a cena. O botão da Bíblia, áudio do Discman e alternativas de teclado permanecem disponíveis.
 
 Chrome verificou ausência de fundo e borda na camada, blur de 9 px, clique na geometria do Discman, rotação dos cinco objetos, restauração por fechamento e mobile. Capturas de caderno e Bíblia inspecionadas; nenhum erro de execução. Build/check e 25 testes passaram.
+
+## Manipulação direta e zoom lateral — 20/10/2026
+
+Removidos do HTML e do controlador os modos Girar/Mover e os botões de setas/Reposicionar. Arraste sempre gira. + e − ficam à direita, posicionados a partir dos limites projetados do objeto e contidos na tela; a câmera reserva espaço para eles. Link da Bíblia no mesmo conjunto lateral. CSS do portfólio agora recebe a versão do build na URL para evitar apresentação antiga em cache.
+
+Build, check e 26 testes passaram. Chrome verificou ausência dos controles removidos, zoom por +/−, giro com mouse e toque, ações laterais dentro da tela, link correto da Bíblia e controles físicos do Discman. Capturas `inspect-bible.png` e `games-notebook-mobile.png` inspecionadas sem erros de execução.
