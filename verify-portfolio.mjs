@@ -83,6 +83,20 @@ try{
  await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
  await until('!document.querySelector("#games-notebook").open','notebook closes with Escape');
  await until('document.body.style.overflow!=="hidden"','notebook restores scroll');
+ const musicHit=await findRoomTarget('segunda gaveta',[962,968,974,980,986,992],[485,490,495,500,505,510]);
+ await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...musicHit,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...musicHit,button:'left',clickCount:1});
+ assert.equal(await evaluate('document.querySelector("#games-notebook").open'),false,'Second drawer animates before the Discman opens');
+ await until('document.querySelector("#games-notebook").open && document.querySelector("#games-notebook").dataset.object==="discman" && document.querySelectorAll("[data-discman-track]").length===5','Discman and five track positions');
+ await wait(200);const displayBefore=await notebookImage();await wait(350);assert.notEqual(await notebookImage(),displayBefore,'Discman LCD scrolls the song title');
+ fs.writeFileSync(path.join(output,'discman.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ const discmanCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,scale:r.height/230}})()');
+ let hardwarePlay=null;for(const dy of [32,36,40,44]){for(const dx of [44,48,52,56]){const point={x:discmanCenter.x+dx*discmanCenter.scale,y:discmanCenter.y+dy*discmanCenter.scale};await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',...point});if(await evaluate('document.querySelector("[data-notebook-canvas]").style.cursor==="pointer"')){hardwarePlay=point;break;}}if(hardwarePlay)break;}
+ assert(hardwarePlay,'Physical play/pause button is reachable');await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...hardwarePlay,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...hardwarePlay,button:'left',clickCount:1});
+ await until('document.querySelector("[data-discman-status]").textContent.includes("MP3 autorizado")','Missing MP3 is explained');
+ assert.equal(await evaluate('document.querySelector("[data-discman-toggle]").getAttribute("aria-pressed")'),'false','Missing audio never claims playback');
+ await evaluate('document.querySelectorAll("[data-discman-track]")[1].click();document.querySelector("[data-discman-toggle]").click()');
+ await until('document.querySelector("[data-discman-status]").textContent.includes("reservada")','Four music choices remain reserved');
+ await evaluate('document.querySelector("[data-notebook-close]").click()');await until('!document.querySelector("#games-notebook").open && document.body.style.overflow!=="hidden"','Discman closes');await wait(800);
  for(const kind of ['bible','pokedex','family']){
   const locations={bible:{label:'NTLH',xs:[650,655,660,665,670,675,680],ys:[470,474,478,482,486,490]},pokedex:{label:'Pokédex',xs:[955,960,965,970,975,980],ys:[432,436,440,444,448]},family:{label:'Quadro',xs:[966,970,974,978,982],ys:[398,403,408,413,418]}};
   const target=locations[kind];const hit=await findRoomTarget(target.label,target.xs,target.ys);

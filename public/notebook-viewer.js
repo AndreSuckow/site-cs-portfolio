@@ -1,5 +1,7 @@
 // A tangible notebook: printed pages, page block, back cover and metal spiral.
 // Uses the room engine's Three.js runtime instead of loading a second copy.
+import {drawDiscmanDisplay} from './discman.js?v=cs-mode-3';
+import {discmanState} from './discman-player.js?v=cs-mode-3';
 export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const {Scene,Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,BasicMaterial,CanvasTexture,OrthographicCamera,Renderer,Raycaster,Vector2,Box3,Vector3,SRGB}=T;
  const renderer=new Renderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.outputColorSpace=SRGB;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0,0);
@@ -67,27 +69,33 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   const bounds=new Box3().setFromObject(object),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());
   object.position.sub(center);const scale=3.3/Math.max(size.x,size.y,size.z);book.scale.setScalar(scale);
  }
+ const discman=dialog.dataset.object==='discman';
+ const displays=[];if(discman)book.traverse(mesh=>{if(mesh.userData.discmanScreen)displays.push(mesh.material.map);});
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
- function render(){frame=0;if(!active)return;camera.zoom=zoom;camera.position.set(panX,panY,8);camera.updateProjectionMatrix();renderer.render(scene,camera);}
+ function render(time=0){frame=0;if(!active)return;if(discman){for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}camera.zoom=zoom;camera.position.set(panX,panY,8);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman)schedule();}
  function schedule(){if(active&&!frame)frame=requestAnimationFrame(render);}
  function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);const aspect=r.width/r.height;camera.left=-2.12*aspect;camera.right=2.12*aspect;camera.top=2.12;camera.bottom=-2.12;schedule();}
  function reset(){book.rotation.set(-.08,-.12,-.012);zoom=1;panX=panY=0;schedule();}
  function setMode(next){mode=next;canvas.dataset.tool=mode;for(const button of dialog.querySelectorAll('[data-notebook-tool]'))button.setAttribute('aria-pressed',String(button.dataset.notebookTool===mode));}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
- function hit(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return ray.intersectObject(book,true).length>0;}
+ function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return ray.intersectObject(book,true);}
+ function hit(e){return intersections(e).length>0;}
+ let buttonPress=null;
  listen(canvas,'pointerdown',e=>{
   if(!active||e.button>0||(!pointers.size&&!hit(e)))return;
   e.preventDefault();canvas.focus({preventScroll:true});pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId);canvas.classList.add('is-held');
+  if(discman){const action=intersections(e)[0]?.object.userData.discmanAction;buttonPress=action?{action,x:e.clientX,y:e.clientY,id:e.pointerId}:null;}
  });
  listen(canvas,'pointermove',e=>{
-  const before=pointers.get(e.pointerId);if(!before)return;e.preventDefault();
+  const before=pointers.get(e.pointerId);if(!before){if(discman)canvas.style.cursor=intersections(e)[0]?.object.userData.discmanAction?'pointer':'';return;}e.preventDefault();
+  if(buttonPress&&Math.hypot(e.clientX-buttonPress.x,e.clientY-buttonPress.y)>8)buttonPress=null;
   const dx=e.clientX-before.x,dy=e.clientY-before.y;
   if(pointers.size===2){const other=[...pointers.entries()].find(([id])=>id!==e.pointerId)[1],oldDistance=Math.hypot(before.x-other.x,before.y-other.y),distance=Math.hypot(e.clientX-other.x,e.clientY-other.y);zoom=clamp(zoom*distance/Math.max(1,oldDistance),.65,3.5);}
   else if(mode==='move'||e.shiftKey){panX-=dx/canvas.clientHeight*4.24/zoom;panY+=dy/canvas.clientHeight*4.24/zoom;}
   else{book.rotation.y+=dx*.009;book.rotation.x=clamp(book.rotation.x+dy*.007,-1.35,1.35);}
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});schedule();
  });
- function release(e){pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');}
+ function release(e){if(buttonPress?.id===e.pointerId){const press=buttonPress;buttonPress=null;if(e.type==='pointerup'&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<=8)document.dispatchEvent(new CustomEvent('discman:control',{detail:press.action}));}pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');}
  for(const event of ['pointerup','pointercancel','lostpointercapture'])listen(canvas,event,release);
  listen(canvas,'wheel',e=>{if(!active)return;e.preventDefault();zoom=clamp(zoom*Math.exp(-e.deltaY*.001),.65,3.5);schedule();},{passive:false});
  listen(canvas,'keydown',e=>{

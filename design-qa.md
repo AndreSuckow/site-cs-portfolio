@@ -64,3 +64,9 @@ Os 20 testes, build e check passaram. O Chrome acionou a gaveta por clique real 
 Bíblia, Pokédex, quadro e gaveta recebem o clique nas suas próprias geometrias, sem caixas invisíveis maiores que os objetos. Materiais individuais permitem realce âmbar sem iluminar outros móveis; os objetos sobem discretamente como as fitas e retornam ao sair do mouse. A gaveta mantém sua altura e animação de abertura. Removida a apresentação de painel ao focar as alternativas semânticas de teclado, que agora realçam os objetos físicos.
 
 Build, check e 20 testes passaram. O teste Chrome passou a abrir os três objetos por mouse real, conferindo cursor, rotação e fechamento. Capturas de hover em `tmp/portfolio-browser/hover-*.png`.
+
+## Discman na segunda gaveta — 20/10/2026
+
+Modelo próprio de Discman com visor LCD, fones laranja e controles físicos. Segunda gaveta clicável com abertura antes da inspeção; cinco posições de playlist, mensagens de MP3 ausente e faixa reservada, reprodução pausada ao fechar. Pasta separada `public/audio/discman/`, sem gravações de terceiros incluídas. O servidor local reconhece tipos de áudio e JSON; a publicação versiona também os imports internos para evitar módulos antigos em cache.
+
+22 testes cobrem as duas gavetas e estados de play/pause, falha e reserva. Verificação Chrome cobre clique na segunda gaveta, mudança de pixels do visor e tratamento de áudio ausente. Reprodução real da música depende do MP3 autorizado que ainda não foi fornecido.

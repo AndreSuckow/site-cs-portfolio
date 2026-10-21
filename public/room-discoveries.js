@@ -1,23 +1,25 @@
+import "./discman-player.js?v=cs-mode-3";
 const dialog=document.getElementById('games-notebook');
 const drawerFocus=document.querySelector('[data-drawer-focus]');
 let previousFocus=null,previousOverflow='',opening=false,activeObject='notebook';
 const objects={notebook:{title:'Meu caderno de jogos',hint:'Segure e arraste o caderno para girar. Use a roda do mouse ou dois dedos para aproximar.',label:'Caderno de jogos'},bible:{title:'Bíblia Sagrada',hint:'Segure e arraste para girar a Bíblia. Para ler, use o link abaixo.',label:'Bíblia Sagrada'},pokedex:{title:'Pokédex',hint:'Segure e arraste a Pokédex para examinar os detalhes.',label:'Pokédex'},family:{title:'Quadro da família',hint:'Segure e arraste o quadro para girar. Ilustração de família.',label:'Quadro da família'}};
+objects.discman={title:'Meu Discman',hint:'Arraste para girar. Clique no botão redondo de play/pause ou use os controles abaixo.',label:'Discman'};
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function openNotebook(kind='notebook'){
  if(!objects[kind])return;
  if(opening||dialog.open||document.querySelector('dialog[open]'))return;
- activeObject=kind;opening=true;
+ activeObject=kind;opening=true;dialog.querySelector('[data-discman-player]').hidden=kind!=='discman';
  const item=objects[kind];dialog.querySelector('#notebook-title').textContent=item.title;dialog.querySelector('#notebook-description').textContent=item.hint;dialog.querySelector('[data-notebook-canvas]').setAttribute('aria-label',item.label+' em 3D. Arraste ou use as setas para girar. Mais e menos ajustam o zoom; Home reposiciona.');dialog.querySelector('.notebook-inspector__text').hidden=kind!=='notebook';dialog.querySelector('[data-room-bible]').hidden=kind!=='bible';dialog.querySelector('.notebook-inspector__error').hidden=true;dialog.dataset.object=kind;
- dialog.querySelector('.eyebrow').textContent={notebook:'Super Nintendo · Minhas aventuras',bible:'Leitura e fé',pokedex:'Coleção de jogos',family:'Memórias de família'}[kind];
+ dialog.querySelector('.eyebrow').textContent={notebook:'Super Nintendo · Minhas aventuras',bible:'Leitura e fé',pokedex:'Coleção de jogos',family:'Memórias de família',discman:'Minha trilha sonora'}[kind];
  dialog.querySelector('.notebook-inspector__tools').setAttribute('aria-label','Manusear '+item.label);
  const actions={left:'Girar para a esquerda',right:'Girar para a direita',in:'Aproximar',out:'Afastar',reset:'Reposicionar'};
  dialog.querySelectorAll('[data-notebook-view]').forEach(button=>button.setAttribute('aria-label',actions[button.dataset.notebookView]+': '+item.label));
  previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;
  document.dispatchEvent(new CustomEvent('resume:skill-open'));
  document.body.style.overflow='hidden';
- if(kind==='notebook'){
+ if(kind==='notebook'||kind==='discman'){
   drawerFocus.hidden=false;drawerFocus.dataset.phase='opening';
-  document.dispatchEvent(new CustomEvent('room:drawer',{detail:true}));
+  document.dispatchEvent(new CustomEvent('room:drawer',{detail:kind==='discman'?{open:true,kind}:true}));
  }else setTimeout(showInspector,reduced()?0:150);
 }
 function showInspector(){
@@ -31,12 +33,12 @@ function showInspector(){
   dialog.querySelector('[data-notebook-close]').focus({preventScroll:true});
 }
 document.addEventListener('room:drawer-focus',event=>{drawerFocus.style.setProperty('--drawer-x',event.detail.x+'px');drawerFocus.style.setProperty('--drawer-y',event.detail.y+'px');});
-document.addEventListener('room:drawer-opened',()=>{if(opening&&activeObject==='notebook')drawerFocus.dataset.phase='fading';});
-document.addEventListener('room:drawer-ready',()=>{if(opening&&activeObject==='notebook')showInspector();});
+document.addEventListener('room:drawer-opened',()=>{if(opening&&['notebook','discman'].includes(activeObject))drawerFocus.dataset.phase='fading';});
+document.addEventListener('room:drawer-ready',()=>{if(opening&&['notebook','discman'].includes(activeObject))showInspector();});
 function cancelOpening(){
- if(!opening||activeObject!=='notebook')return;
+ if(!opening)return;
  opening=false;drawerFocus.hidden=true;delete drawerFocus.dataset.phase;
- document.dispatchEvent(new CustomEvent('room:drawer',{detail:false}));
+ document.dispatchEvent(new CustomEvent('room:drawer',{detail:activeObject==='discman'?{open:false,kind:'discman'}:false}));
  document.body.style.overflow=previousOverflow;
  document.dispatchEvent(new CustomEvent('resume:skill-close'));
  previousFocus?.focus({preventScroll:true});
@@ -51,7 +53,7 @@ dialog.querySelector('[data-notebook-close]').addEventListener('click',()=>dialo
 dialog.addEventListener('close',()=>{
  document.dispatchEvent(new CustomEvent('room:notebook-view',{detail:false}));
  document.body.style.overflow=previousOverflow;
- if(activeObject==='notebook')document.dispatchEvent(new CustomEvent('room:drawer',{detail:false}));
+ if(['notebook','discman'].includes(activeObject))document.dispatchEvent(new CustomEvent('room:drawer',{detail:activeObject==='discman'?{open:false,kind:'discman'}:false}));
  if(!document.querySelector('dialog[open]'))document.dispatchEvent(new CustomEvent('resume:skill-close'));
  (previousFocus?.isConnected?previousFocus:document.getElementById('stage-canvas'))?.focus({preventScroll:true});
 });

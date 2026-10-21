@@ -3,11 +3,32 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
 const html=fs.readFileSync('src/room-discoveries.html','utf8');
+test('second drawer waits for its animation and opens only the Discman controls',()=>{
+ const dom=new JSDOM('<html data-mode="3d"><body>'+html+'</body></html>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document;
+ w.matchMedia=()=>({matches:false});w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
+ w.eval(fs.readFileSync('public/room-discoveries.js','utf8').replace(/^import .*;\r?\n/gm,''));
+ const changes=[];d.addEventListener('room:drawer',e=>changes.push(JSON.parse(JSON.stringify(e.detail))));
+ d.querySelector('[data-room-inspect="discman"]').click();const modal=d.getElementById('games-notebook');assert(!modal.open);assert.deepEqual(changes,[{open:true,kind:'discman'}]);
+ d.dispatchEvent(new w.CustomEvent('room:drawer-opened'));assert(!modal.open);d.dispatchEvent(new w.CustomEvent('room:drawer-ready'));assert(modal.open);assert.equal(modal.dataset.object,'discman');assert(!d.querySelector('[data-discman-player]').hidden);assert(d.querySelector('[data-room-bible]').hidden);assert(d.querySelector('.notebook-inspector__text').hidden);
+ modal.close();assert.deepEqual(changes[1],{open:false,kind:'discman'});dom.window.close();
+});
+
+test('Discman supports playback, pause, missing audio and reserved tracks without false playback',async()=>{
+ const dom=new JSDOM('<body>'+html+'</body>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document;
+ let audio;class FakeAudio extends w.EventTarget{constructor(){super();this.paused=true;this.ended=false;this.src='';audio=this;}pause(){this.paused=true;this.dispatchEvent(new w.Event('pause'));}async play(){if(this.fail)throw Error('missing');this.paused=false;this.dispatchEvent(new w.Event('play'));}load(){}removeAttribute(){this.src='';}}
+ w.Audio=FakeAudio;w.matchMedia=()=>({matches:false});w.fetch=async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('public/audio/discman/playlist.json','utf8'))});
+ w.eval(fs.readFileSync('public/discman-player.js','utf8').replace('export const','const').replaceAll('import.meta.url',"'http://localhost:4173/discman-player.js'"));
+ const modal=d.getElementById('games-notebook');modal.setAttribute('open','');modal.dataset.object='discman';d.dispatchEvent(new w.CustomEvent('room:notebook-view',{detail:'discman'}));await new Promise(r=>setTimeout(r,0));
+ assert.equal(d.querySelectorAll('[data-discman-track]').length,5);const toggle=d.querySelector('[data-discman-toggle]');toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused);assert.equal(toggle.getAttribute('aria-pressed'),'true');assert(audio.src.endsWith('/audio/discman/01-cpm22-dias-atras.mp3'));
+ toggle.click();assert(audio.paused);audio.fail=true;toggle.click();await new Promise(r=>setTimeout(r,0));assert(d.querySelector('[data-discman-status]').textContent.includes('MP3 autorizado'));assert.equal(toggle.getAttribute('aria-pressed'),'false');
+ d.querySelector('[data-discman-track="1"]').click();toggle.click();await new Promise(r=>setTimeout(r,0));assert(audio.paused);assert(d.querySelector('[data-discman-status]').textContent.includes('reservada'));
+ d.dispatchEvent(new w.CustomEvent('room:notebook-view',{detail:false}));assert(audio.paused);dom.window.close();
+});
 test('drawer opens one notebook, preserves the game lists, and restores focus and scroll',()=>{
  const dom=new JSDOM('<html data-mode="3d" data-room-version="novo-quarto-3d"><body>'+html+'</body></html>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document;
  const pending=[];w.setTimeout=fn=>{pending.push(fn);return pending.length;};w.matchMedia=()=>({matches:false});
  w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};w.HTMLDialogElement.prototype.close=function(){if(this.open){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));}};
- w.eval(fs.readFileSync('public/room-discoveries.js','utf8'));
+ w.eval(fs.readFileSync('public/room-discoveries.js','utf8').replace(/^import .*;\r?\n/gm,''));
  const trigger=d.querySelector('[data-room-notebook]'),dialog=d.getElementById('games-notebook');
  assert(!d.querySelector('[data-room-discoveries]'));
  trigger.focus();d.body.style.overflow='auto';const changes=[];let stopped=0,resumed=0;
@@ -32,7 +53,7 @@ test('Bible, Pokedex and family share inspection controls, with the reading link
  const dom=new JSDOM('<html data-mode="3d" data-room-version="novo-quarto-3d"><body>'+html+'</body></html>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document,queue=[];
  w.matchMedia=()=>({matches:false});w.setTimeout=fn=>queue.push(fn);
  w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
- w.eval(fs.readFileSync('public/room-discoveries.js','utf8'));
+ w.eval(fs.readFileSync('public/room-discoveries.js','utf8').replace(/^import .*;\r?\n/gm,''));
  const dialog=d.getElementById('games-notebook'),views=[],drawers=[];
  d.addEventListener('room:notebook-view',event=>views.push(event.detail));d.addEventListener('room:drawer',event=>drawers.push(event.detail));
  for(const [kind,title] of [['bible','Bíblia Sagrada'],['pokedex','Pokédex'],['family','Quadro da família']]){

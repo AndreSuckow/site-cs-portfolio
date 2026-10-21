@@ -189,3 +189,17 @@ html[data-mobile-reading] .snes-pad .dock__dpad:has(button:active),html[data-mob
 @keyframes drawer-backdrop{from{background-color:#07090d80;backdrop-filter:blur(0)}to{background-color:#07090dd6;backdrop-filter:blur(5px)}}
 @keyframes notebook-pickup{from{opacity:0;transform:translateY(48px) scale(.88)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.drawer-focus{transition:none}.notebook-inspector[data-object="notebook"][open]::backdrop,.notebook-inspector[data-object="notebook"][open] [data-notebook-canvas]{animation:none}}
+.discman-player[hidden]{display:none}
+.discman-player{flex:0 0 auto;margin-top:12px;padding:14px 18px;border:1px solid var(--ink-600);background:var(--tv-navy);color:var(--tv-paper)}
+.discman-player__title{color:var(--amber-400);font:600 18px "Space Grotesk",sans-serif;margin:0 0 12px}
+.discman-player__controls{display:flex;justify-content:center;gap:12px}
+.discman-player button{cursor:pointer;background:var(--ink-850);color:var(--tv-paper);border:1px solid var(--ink-600);padding:10px 14px;min-height:44px;font:inherit}
+.discman-player button:hover,.discman-player button:focus-visible,.discman-player button[aria-current="true"]{border-color:var(--amber-400);color:var(--amber)}
+.discman-player button:disabled{opacity:.5;cursor:wait}
+.discman-player [data-discman-status]{min-height:1.5em;margin:10px 0;font-size:14px}
+.discman-player ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;list-style:none;padding:0;margin:0}
+.games-notebook .discman-player li{padding:0;min-height:0;border:0}
+.games-notebook .discman-player li:before{display:none}
+.discman-player ol button{width:100%;text-align:left}
+.notebook-inspector[data-object="discman"] .notebook-inspector__viewport{flex:0 0 min(42dvh,380px);min-height:220px}
+@media(max-width:600px){.discman-player ol{grid-template-columns:1fr}}

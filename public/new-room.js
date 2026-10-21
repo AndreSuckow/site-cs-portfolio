@@ -1,3 +1,4 @@
+import {createDiscman} from "./discman.js?v=cs-mode-3";
 // Novo Quarto 3D — original geometry and textures inspired by André's room reference.
 // The interactive TV and console retain their original world coordinates.
 export function createNewRoom(T){
@@ -66,7 +67,7 @@ export function createNewRoom(T){
  box('Desk right side',1.08,.245,-1,.05,.46,.51,oak);
  box('Drawer pedestal',.73,.24,-1,.5,.44,.49,oak);
  for(let i=0;i<3;i++){
-  if(i!==2){box('Desk drawer',.73,.12+i*.13,-.743,.46,.12,.025,oak);box('Desk drawer handle',.73,.12+i*.13,-.723,.085,.012,.016,black);}
+  if(i===0){box('Desk drawer',.73,.12+i*.13,-.743,.46,.12,.025,oak);box('Desk drawer handle',.73,.12+i*.13,-.723,.085,.012,.016,black);}
  }
  const drawer=new Group();drawer.name='First desk drawer';drawer.position.set(.73,.38,-.743);interactive.add(drawer);
  const front=box('Clickable top drawer',0,0,0,.46,.12,.025,oak,drawer);action(front,'notebook','Abrir gaveta: caderno de jogos');
@@ -78,6 +79,11 @@ export function createNewRoom(T){
  box('Notebook pages',0,-.017,-.12,.247,.009,.2,material('#f0e6c6'),drawerNotebook);
  const notebookMap=texture((c,w,h)=>{c.fillStyle='#141833';c.fillRect(0,0,w,h);c.strokeStyle='#4e5d8a';for(let y=115;y<h;y+=38){c.beginPath();c.moveTo(24,y);c.lineTo(w-24,y);c.stroke();c.strokeRect(28,y-24,15,15);}c.fillStyle='#ffb547';c.font='bold 42px monospace';c.fillText('MEUS JOGOS',32,80);c.strokeStyle='#aeb6c8';c.lineWidth=4;for(let x=24;x<w-10;x+=35){c.beginPath();c.ellipse(x,17,6,14,0,0,Math.PI*2);c.stroke();}},512,384);
  plane('Notebook in drawer',0,-.011,-.12,.246,.199,material('#ffffff',notebookMap),[-Math.PI/2,0,0],drawerNotebook);
+ const musicDrawer=new Group();musicDrawer.name='Second desk drawer';musicDrawer.position.set(.73,.25,-.743);interactive.add(musicDrawer);
+ box('Second drawer front',0,0,0,.46,.12,.025,oak,musicDrawer);box('Second drawer handle',0,0,.02,.085,.012,.016,black,musicDrawer);
+ box('Second drawer bottom',0,-.045,-.17,.43,.015,.33,darkOak,musicDrawer);
+ for(const x of [-.22,.22])box('Second drawer side',x,-.015,-.17,.015,.08,.33,oak,musicDrawer);
+ const discman=createDiscman(T);discman.root.scale.setScalar(.78);discman.root.position.set(0,-.012,-.15);musicDrawer.add(discman.root);
  // Wardrobe with inset panels, open center niche and suitcases above it.
  const wx=-1.45,wz=-1.02;
  box('Wardrobe back',wx,.85,-1.26,1.05,1.64,.035,darkOak);
@@ -130,6 +136,7 @@ export function createNewRoom(T){
  discovery('pokedex',pokedex,'Pokédex · segurar e girar');
  discovery('family',frame,'Quadro da família · segurar e girar');
  discovery('notebook',drawer,'Abrir gaveta: caderno de jogos',0);
+ discovery('discman',musicDrawer,'Abrir segunda gaveta: Discman',0);
  function highlight(id,reduced=false){
   if(id===highlighted)return;highlighted=id;
   for(const [key,item] of discoveries){
@@ -281,6 +288,7 @@ export function createNewRoom(T){
  root.userData={version:'novo-quarto-3d',parts:partCount,batches:batches.size};
  root.add(interactive);
  function getInspectionModel(kind){
+  if(kind==='discman'){const model=discman.root.clone(true);model.rotation.x=Math.PI/2;return model;}
   if(kind==='bible'){const model=new Group();for(const part of [bible,biblePages,bibleCover])model.add(part.clone());model.rotation.x=Math.PI/2;return model;}
   if(kind==='pokedex'){const model=pokedex.clone(true);model.rotation.set(.75,0,0);return model;}
   if(kind==='family'){const model=frame.clone(true);model.rotation.set(-.12,0,0);return model;}
@@ -299,5 +307,12 @@ export function createNewRoom(T){
    T.animate(drawerNotebook.position,{y:0,z:0,duration:.2,ease:'power2.in',overwrite:true,onComplete(){if(current())T.animate(drawer.position,{z:-.743,duration:.45,ease:'power2.inOut',overwrite:true});}});
   }
  }
- return {root,targets:[...new Set(targets)],highlight,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
+ let musicSequence=0;
+ function setDiscmanOpen(open,reduced=false,callbacks={}){
+  const seq=++musicSequence;
+  const ready=()=>{if(seq!==musicSequence)return;callbacks.opened?.();if(T.animate&&!reduced)T.animate(discman.root.position,{y:.1,duration:.38,overwrite:true,onComplete:()=>{if(seq===musicSequence)callbacks.ready?.();}});else{discman.root.position.y=.1;callbacks.ready?.();}};
+  if(T.animate&&!reduced)T.animate(musicDrawer.position,{z:open?-.51:-.743,duration:.7,ease:'power3.inOut',overwrite:true,onComplete:open?ready:undefined});else{musicDrawer.position.z=open?-.51:-.743;if(open)ready();}
+  if(!open){if(T.animate&&!reduced)T.animate(discman.root.position,{y:-.012,duration:.2,overwrite:true});else discman.root.position.y=-.012;}
+ }
+ return {root,targets:[...new Set(targets)],highlight,setDiscmanOpen,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;musicSequence++;discman.dispose();for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
 }
