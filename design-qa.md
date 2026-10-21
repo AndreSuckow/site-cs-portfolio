@@ -76,3 +76,9 @@ Modelo próprio de Discman com visor LCD, fones laranja e controles físicos. Se
 O estado real do jogo controla a visibilidade do menu externo quando as abas da TV estão disponíveis. No 2D, o cabeçalho permanece fixo e a barra secundária foi removida, incluindo telas pequenas com navegação horizontal. “Hobbies” virou “Tempo livre” nos menus, título e HUD, preservando âncoras existentes. Família aparece primeiro, com o texto fornecido pelo usuário e ícone pixelado compartilhado.
 
 Build, check e 23 testes passaram. Chrome percorreu as seis abas 3D sem menu externo duplicado e seis posições de scroll 2D com cabeçalho em y=0. Capturas desktop/mobile e TV foram inspecionadas: `fixed-menu-2d.png`, `cs-hobbies-3d.png`, `cs-hobbies-mobile.png`. Nenhuma exceção de execução.
+
+## Abertura sempre em 3D — 20/10/2026
+
+HTML inicia em 3D; preferências antigas de 2D são ignoradas na abertura. O botão altera o modo apenas durante a visita atual, sem sobrescrever som e CRT. Escolher 2D enquanto o motor carrega não é desfeito pela conclusão da carga. Falha de WebGL mantém o conteúdo legível.
+
+Build com base do GitHub Pages, check e 25 testes passaram. Chrome foi iniciado com preferência antiga de 2D injetada em todas as navegações; abriu em 3D, permitiu a troca manual e voltou ao 3D após reiniciar no final. Fluxos anteriores continuaram passando sem exceções.

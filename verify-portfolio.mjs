@@ -27,6 +27,7 @@ try{
  const targets=await (await fetch(`http://${new URL(endpoint).host}/json/list`)).json();
  page=await connect(targets.find(target=>target.type==='page').webSocketDebuggerUrl);
  await page.send('Page.enable');await page.send('Runtime.enable');
+ await page.send('Page.addScriptToEvaluateOnNewDocument',{source:'try{localStorage.setItem("andre:prefs",JSON.stringify({...JSON.parse(localStorage.getItem("andre:prefs")||"{}"),mode:"2d"}))}catch{}'});
  const evaluate=async expression=>{const result=await page.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
  const until=async(expression,label)=>{for(let i=0;i<150;i++){if(await evaluate(expression))return;await wait(60);}throw Error(`Timed out: ${label}`);};
  const key=async(value,type='keyDown')=>{const codes={ArrowRight:'ArrowRight',Enter:'Enter',e:'KeyE'};await page.send('Input.dispatchKeyEvent',{type,key:value,code:codes[value]||value,windowsVirtualKeyCode:value==='Enter'?13:value==='ArrowRight'?39:69});};
@@ -273,6 +274,7 @@ try{
  assert.equal(await evaluate('document.querySelector("#game-over-dialog").open'),false);
  await evaluate('document.querySelector("[data-reload]").click()');
  await until('document.querySelector("#continue-count")?.textContent==="9" && scrollY<10','restart restores the beginning');
+ await until('document.documentElement.dataset.mode==="3d" && document.querySelector("[data-loader]").hidden','reload returns to 3D even after manual 2D and a saved 2D preference');
  assert.equal(page.errors.length,0,JSON.stringify(page.errors));
  fs.writeFileSync(path.join(output,'verification.json'),JSON.stringify({restored:true,checks:['CS home','no RPG introduction','15 skills','skill dialog open and close','about and hobbies in 3D','mobile tooltip','hobbies do not trigger Game Over','final countdown reaches zero','Game Over focus and WhatsApp','reload restarts at the beginning','mobile width'],exceptions:page.errors},null,2));
  console.log('PASS: CS portfolio, SNES navigation, pause/resume, mobile landscape, skill dialogs and zero runtime exceptions.');

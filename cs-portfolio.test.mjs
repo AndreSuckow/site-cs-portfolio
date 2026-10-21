@@ -4,6 +4,27 @@ import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {whatsappMessage} from './public/cs-model.js';
 const html=fs.readFileSync('public/index.html','utf8');
+function bootFixture({webgl=true,deferred=false}={}){
+ const dom=new JSDOM(html,{url:'http://localhost:4173/',runScripts:'outside-only'}),w=dom.window;
+ w.localStorage.setItem('andre:prefs',JSON.stringify({mode:'2d',sound:false,crt:false}));
+ w.matchMedia=()=>({matches:false});w.requestIdleCallback=callback=>callback();
+ Object.defineProperty(w.document,'readyState',{value:'complete'});
+ w.HTMLCanvasElement.prototype.getContext=()=>webgl?{getExtension:()=>({loseContext(){}})}:null;
+ let finish;const engine={setActive(){}};w.__engineStart=()=>deferred?new Promise(resolve=>{finish=()=>resolve(engine);}):Promise.resolve(engine);
+ const source=fs.readFileSync('src/boot.js','utf8').replace(/import\(`\.\/engine\.js\?v=cs-mode-3`\)/,'Promise.resolve({start:window.__engineStart})').replaceAll('import.meta','({url:location.href})').replace(/export\{[^}]+\};?\s*$/,'');
+ w.eval(source);return {dom,w,finish:()=>finish?.()};
+}
+test('every visit starts in 3D despite a saved 2D preference, while manual switching remains available',async()=>{
+ const {dom,w}=bootFixture();await new Promise(resolve=>setTimeout(resolve,0));
+ assert.equal(w.document.documentElement.dataset.mode,'3d');
+ const button=w.document.querySelector('[data-toggle="mode"]');button.click();assert.equal(w.document.documentElement.dataset.mode,'2d');
+ button.click();await new Promise(resolve=>setTimeout(resolve,0));assert.equal(w.document.documentElement.dataset.mode,'3d');
+ const prefs=JSON.parse(w.localStorage.getItem('andre:prefs'));assert.equal(prefs.sound,false);assert.equal(prefs.crt,false);dom.window.close();
+});
+test('a manual 2D switch during loading is respected and unsupported WebGL still has readable content',async()=>{
+ const pending=bootFixture({deferred:true});await new Promise(resolve=>setTimeout(resolve,0));pending.w.document.querySelector('[data-toggle="mode"]').click();pending.finish();await new Promise(resolve=>setTimeout(resolve,0));assert.equal(pending.w.document.documentElement.dataset.mode,'2d');pending.dom.window.close();
+ const fallback=bootFixture({webgl:false});assert.equal(fallback.w.document.documentElement.dataset.mode,'2d');fallback.dom.window.close();
+});
 test('Tempo livre shares the supplied family description and icons across the portfolio',()=>{
  const dom=new JSDOM(html),d=dom.window.document;
  for(const link of d.querySelectorAll('a[data-nav-tab="hobbies"]'))assert.equal(link.textContent.replace(/^05/,''),'Tempo livre');
