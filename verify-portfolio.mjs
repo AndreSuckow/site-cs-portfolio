@@ -56,6 +56,10 @@ try{
  fs.writeFileSync(path.join(output,'drawer-opening.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await until('document.querySelector("#games-notebook").open','drawer notebook opens');
  await until('document.querySelector("[data-notebook-canvas]").dataset.ready==="true"','3D notebook ready');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector("#games-notebook")).backgroundColor'),'rgba(0, 0, 0, 0)','Floating inspection has no panel background');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".notebook-inspector__viewport")).borderTopWidth'),'0px');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector("#games-notebook"),"::backdrop").backdropFilter'),'blur(9px)','Existing room is blurred');
+  assert.equal(await evaluate('document.querySelector("[data-notebook-close]").textContent.includes("Voltar")'),true);
  await wait(250);
  assert.equal(await evaluate('document.querySelectorAll(".games-notebook__completed s").length'),4);
  assert.equal(await evaluate('document.querySelectorAll("#games-pending-title + ul li").length'),9);

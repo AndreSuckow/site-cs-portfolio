@@ -3,12 +3,13 @@
 import {drawDiscmanDisplay} from './discman.js?v=cs-mode-3';
 import {discmanState} from './discman-player.js?v=cs-mode-3';
 export function createNotebookViewer(T,canvas,dialog,inspection=null){
- const {Scene,Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,BasicMaterial,CanvasTexture,OrthographicCamera,Renderer,Raycaster,Vector2,Box3,Vector3,SRGB}=T;
+ const {Scene,Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,BasicMaterial,Material,HemisphereLight,DirectionalLight,CanvasTexture,PerspectiveCamera,Renderer,Raycaster,Vector2,Box3,Vector3,SRGB}=T;
  const renderer=new Renderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.outputColorSpace=SRGB;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0,0);
- const scene=new Scene(),book=new Group(),camera=new OrthographicCamera(-3,3,2.3,-2.3,.1,30);scene.add(book);camera.position.set(0,0,8);
- const resources=[],materials=[],listeners=[];let active=false,frame=0,mode='rotate',zoom=1,panX=0,panY=0;
+ const scene=new Scene(),book=new Group(),camera=new PerspectiveCamera(38,1,.1,30);scene.add(book);camera.position.set(0,0,6.2);
+ scene.add(new HemisphereLight(0xfff4df,0x323b59,1.6));const key=new DirectionalLight(0xfff1d9,3);key.position.set(-3,5,6);scene.add(key);const fill=new DirectionalLight(0xb5cdff,.7);fill.position.set(4,0,-2);scene.add(fill);
+ const resources=[],materials=[],listeners=[];let active=false,frame=0,mode='rotate',zoom=1,panX=0,panY=0,distance=6.2;
  const pointers=new Map(),ray=new Raycaster(),ndc=new Vector2();
- const material=options=>{const m=new BasicMaterial(options);materials.push(m);return m;};
+ const material=options=>{const m=new Material({roughness:.72,metalness:.04,...options});materials.push(m);return m;};
  function box(w,h,d,z,m){const geometry=new BoxGeometry(w,h,d);resources.push(geometry);const mesh=new Mesh(geometry,m);mesh.position.z=z;book.add(mesh);return mesh;}
  if(!inspection){
  const edge=material({color:'#9ca6b8'}),bottom=material({color:'#68758c'}),cover=material({color:'#141833'}),rim=material({color:'#34415e'});
@@ -61,7 +62,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
    const convert=m=>{
     let map=null;
     if(m.map){if(!clonedMaps.has(m.map)){const copy=m.map.clone();copy.needsUpdate=true;clonedMaps.set(m.map,copy);resources.push(copy);}map=clonedMaps.get(m.map);}
-    return material({color:m.color,map,transparent:m.transparent,opacity:m.opacity,side:m.side});
+    return material({color:m.color,map,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:m.roughness??.72,metalness:m.metalness??.04});
    };
    mesh.material=Array.isArray(mesh.material)?mesh.material.map(convert):convert(mesh.material);
   });
@@ -72,10 +73,10 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const discman=dialog.dataset.object==='discman';
  const displays=[];if(discman)book.traverse(mesh=>{if(mesh.userData.discmanScreen)displays.push(mesh.material.map);});
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
- function render(time=0){frame=0;if(!active)return;if(discman){for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}camera.zoom=zoom;camera.position.set(panX,panY,8);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman)schedule();}
+ function render(time=0){frame=0;if(!active)return;if(discman){for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}camera.zoom=zoom;camera.position.set(panX,panY,distance);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman)schedule();}
  function schedule(){if(active&&!frame)frame=requestAnimationFrame(render);}
- function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);const aspect=r.width/r.height;camera.left=-2.12*aspect;camera.right=2.12*aspect;camera.top=2.12;camera.bottom=-2.12;schedule();}
- function reset(){book.rotation.set(-.08,-.12,-.012);zoom=1;panX=panY=0;schedule();}
+ function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);const aspect=r.width/r.height;camera.aspect=aspect;distance=Math.max(6.2,2.05/(Math.tan(camera.fov*Math.PI/360)*aspect));schedule();}
+ function reset(){book.rotation.set(.24,-.46,-.035);zoom=1;panX=panY=0;schedule();}
  function setMode(next){mode=next;canvas.dataset.tool=mode;for(const button of dialog.querySelectorAll('[data-notebook-tool]'))button.setAttribute('aria-pressed',String(button.dataset.notebookTool===mode));}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
  function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return ray.intersectObject(book,true);}

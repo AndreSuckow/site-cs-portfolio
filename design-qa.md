@@ -82,3 +82,9 @@ Build, check e 23 testes passaram. Chrome percorreu as seis abas 3D sem menu ext
 HTML inicia em 3D; preferências antigas de 2D são ignoradas na abertura. O botão altera o modo apenas durante a visita atual, sem sobrescrever som e CRT. Escolher 2D enquanto o motor carrega não é desfeito pela conclusão da carga. Falha de WebGL mantém o conteúdo legível.
 
 Build com base do GitHub Pages, check e 25 testes passaram. Chrome foi iniciado com preferência antiga de 2D injetada em todas as navegações; abriu em 3D, permitiu a troca manual e voltou ao 3D após reiniciar no final. Fluxos anteriores continuaram passando sem exceções.
+
+## Objetos suspensos no quarto — 20/10/2026
+
+Removida a apresentação de painel da inspeção. Canvas transparente ocupa a tela sobre o quarto existente, com backdrop apenas desfocado. Câmera em perspectiva, luz hemisférica/direcionais, materiais de superfície e inclinação inicial mostram volume; enquadramento se adapta à largura da tela. Voltar e Escape restauram a cena. O botão da Bíblia, áudio do Discman e alternativas de teclado permanecem disponíveis.
+
+Chrome verificou ausência de fundo e borda na camada, blur de 9 px, clique na geometria do Discman, rotação dos cinco objetos, restauração por fechamento e mobile. Capturas de caderno e Bíblia inspecionadas; nenhum erro de execução. Build/check e 25 testes passaram.
