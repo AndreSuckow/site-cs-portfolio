@@ -4,6 +4,13 @@ import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {whatsappMessage} from './public/cs-model.js';
 const html=fs.readFileSync('public/index.html','utf8');
+test('Tempo livre shares the supplied family description and icons across the portfolio',()=>{
+ const dom=new JSDOM(html),d=dom.window.document;
+ for(const link of d.querySelectorAll('a[data-nav-tab="hobbies"]'))assert.equal(link.textContent.replace(/^05/,''),'Tempo livre');
+ assert.equal(d.querySelector('#hobbies-title').textContent,'Tempo livre');
+ const family=d.querySelector('[data-hobby-icon="family"]').closest('article');assert.equal(family.querySelector('h3').textContent,'Família');assert(family.textContent.includes('Meus pais, minha esposa e meus quatro filhos'));
+ assert.equal(d.querySelectorAll('[data-hobby-icon]').length,6);dom.window.close();
+});
 
 test('WhatsApp greeting uses Sao Paulo time at the morning, afternoon and evening boundaries',()=>{
  for(const [time,part] of [['04:59','boa noite'],['05:00','bom dia'],['11:59','bom dia'],['12:00','boa tarde'],['17:59','boa tarde'],['18:00','boa noite']]){

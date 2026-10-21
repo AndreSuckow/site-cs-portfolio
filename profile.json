@@ -269,26 +269,36 @@
   },
   "hobbies": [
     {
+      "title": "Família",
+      "text": "Meus pais, minha esposa e meus quatro filhos são minha família e com quem gosto de dividir meus momentos. ❤️",
+      "icon": "family"
+    },
+    {
       "title": "Fé em Cristo",
       "text": "Minha fé em Cristo faz parte de quem sou. Frequento a Torre Forte Church Campo Largo, onde cultivo minha fé e a convivência em comunidade.",
       "url": "https://www.instagram.com/tf.church/",
-      "action": "Conhecer a igreja"
+      "action": "Conhecer a igreja",
+      "icon": "faith"
     },
     {
       "title": "Jogos online",
-      "text": "Gosto de jogar online, compartilhar partidas e me conectar com amigos."
+      "text": "Gosto de jogar online, compartilhar partidas e me conectar com amigos.",
+      "icon": "gaming"
     },
     {
       "title": "Futebol",
-      "text": "Campo, society ou salão: gosto de estar em quadra, jogar em equipe e aproveitar uma boa partida."
+      "text": "Campo, society ou salão: gosto de estar em quadra, jogar em equipe e aproveitar uma boa partida.",
+      "icon": "football"
     },
     {
       "title": "Academia",
-      "text": "Treinar faz parte da minha rotina de cuidado com a saúde e disciplina."
+      "text": "Treinar faz parte da minha rotina de cuidado com a saúde e disciplina.",
+      "icon": "gym"
     },
     {
       "title": "Praia",
-      "text": "Gosto de ir à praia, descansar e aproveitar o tempo ao ar livre."
+      "text": "Gosto de ir à praia, descansar e aproveitar o tempo ao ar livre.",
+      "icon": "beach"
     }
   ],
   "roomVersion": "novo-quarto-3d"

@@ -70,3 +70,9 @@ Build, check e 20 testes passaram. O teste Chrome passou a abrir os três objeto
 Modelo próprio de Discman com visor LCD, fones laranja e controles físicos. Segunda gaveta clicável com abertura antes da inspeção; cinco posições de playlist, mensagens de MP3 ausente e faixa reservada, reprodução pausada ao fechar. Pasta separada `public/audio/discman/`, sem gravações de terceiros incluídas. O servidor local reconhece tipos de áudio e JSON; a publicação versiona também os imports internos para evitar módulos antigos em cache.
 
 22 testes cobrem as duas gavetas e estados de play/pause, falha e reserva. Verificação Chrome cobre clique na segunda gaveta, mudança de pixels do visor e tratamento de áudio ausente. Reprodução real da música depende do MP3 autorizado que ainda não foi fornecido.
+
+## Navegação única e Tempo livre — 20/10/2026
+
+O estado real do jogo controla a visibilidade do menu externo quando as abas da TV estão disponíveis. No 2D, o cabeçalho permanece fixo e a barra secundária foi removida, incluindo telas pequenas com navegação horizontal. “Hobbies” virou “Tempo livre” nos menus, título e HUD, preservando âncoras existentes. Família aparece primeiro, com o texto fornecido pelo usuário e ícone pixelado compartilhado.
+
+Build, check e 23 testes passaram. Chrome percorreu as seis abas 3D sem menu externo duplicado e seis posições de scroll 2D com cabeçalho em y=0. Capturas desktop/mobile e TV foram inspecionadas: `fixed-menu-2d.png`, `cs-hobbies-3d.png`, `cs-hobbies-mobile.png`. Nenhuma exceção de execução.

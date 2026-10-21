@@ -4,7 +4,12 @@ export function drawHobbyIcon(ctx,kind,x,y,size,time=0,reduced=false){
  const frame=reduced?0:Math.floor((time%5)*4),step=[0,1,0,-1][Math.floor(frame/2)%4];
  ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(size/24,size/24);ctx.imageSmoothingEnabled=false;
  const rect=(x,y,w,h,color=orange)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
- if(kind==='football'){
+ if(kind==='family'){
+  // Four adults and four children, shown as symbolic pixel figures.
+  for(const [x,y] of [[2,2],[7,1],[13,1],[18,2]]){rect(x,y,3,3,light);rect(x-1,y+4,5,6);rect(x,y+10,1,3,shade);rect(x+2,y+10,1,3,shade);}
+  for(const [x,y] of [[3,13],[8,12],[13,12],[18,13]]){rect(x,y,2,2,light);rect(x-1,y+3,4,4);rect(x,y+7,1,2,shade);rect(x+2,y+7,1,2,shade);}
+  rect(10,22,4,1,light);
+ }else if(kind==='football'){
   const roll=reduced?0:Math.floor(frame/5)%4;
   ctx.translate(step,0);
   rect(7,3,10,2);rect(5,5,14,2);rect(3,7,18,10);rect(5,17,14,2);rect(7,19,10,2);

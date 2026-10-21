@@ -156,7 +156,7 @@ try{
  await key('ArrowLeft');
  await until('document.querySelector("[data-hud-label]").textContent==="SOBRE"','SNES Y returns a section');
  await wait(800);
- await evaluate('document.querySelector(".site-nav a[href=\\"#sobre\\"]").focus()');
+ await evaluate('document.querySelector("#stage-canvas").focus()');
  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'p',code:'KeyP',windowsVirtualKeyCode:80});
  await until('document.querySelector("#pause-dialog").open','START pauses');
  assert.equal(await evaluate('document.documentElement.dataset.paused'),'true');
@@ -166,7 +166,7 @@ try{
  await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
  await until('!document.querySelector("#pause-dialog").open','Escape resumes');
  await until('!document.documentElement.hasAttribute("data-paused")','pause state clears');
- assert.equal(await evaluate('document.activeElement.getAttribute("href")'),'#sobre');
+ assert.equal(await evaluate('document.activeElement.id'),'stage-canvas');
  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'p',code:'KeyP',windowsVirtualKeyCode:80});
  await evaluate('document.querySelector("[data-unpause]").click()');
  assert.equal(await evaluate('document.querySelector("#pause-dialog").open'),false);
@@ -226,7 +226,7 @@ try{
  await wait(150);
  fs.writeFileSync(path.join(output,'cs-tooltip-cleared-3d.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await evaluate(`document.querySelector('.site-nav a[href="#hobbies"]').click()`);
- await until('document.querySelector("[data-hud-label]").textContent==="HOBBIES"','Hobbies active on the TV');
+ await until('document.querySelector("[data-hud-label]").textContent==="TEMPO LIVRE"','Hobbies active on the TV');
  await wait(1600);
  fs.writeFileSync(path.join(output,'cs-hobbies-3d.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await evaluate(`document.querySelector('.site-nav a[href="#projetos"]').click()`);
@@ -234,8 +234,22 @@ try{
  await evaluate(`document.querySelector('[data-cart="onboarding"]').click()`);
  await wait(2400);
  fs.writeFileSync(path.join(output,'cs-project-3d.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ for(const chapter of ['sobre','experiencia','projetos','skills','hobbies','contato']){
+  await evaluate(`document.querySelector('.site-nav a[href="#${chapter}"]').click()`);
+  await until(`document.documentElement.dataset.chapter==='${chapter}' && document.documentElement.dataset.tvMenu==='visible'`,'TV owns navigation: '+chapter);
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".site-nav")).display'),'none','No duplicated navigation in '+chapter);
+ }
+ await evaluate('document.querySelector("[data-toggle=mode]").click()');
+ await until('document.documentElement.dataset.mode==="2d"','desktop 2D mode');
+ for(const section of ['inicio','sobre','experiencia','projetos','skills','hobbies']){
+  await evaluate(`document.getElementById('${section}').scrollIntoView()`);await wait(100);
+  assert.equal(await evaluate('Math.round(document.querySelector(".site-header").getBoundingClientRect().top)'),0,'2D header stays fixed in '+section);
+  assert.notEqual(await evaluate('getComputedStyle(document.querySelector(".site-nav")).display'),'none');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".game-nav")).display'),'none');
+ }
+ fs.writeFileSync(path.join(output,'fixed-menu-2d.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  await page.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
- await evaluate('document.querySelector("[data-toggle=mode]")?.click()');
+ await evaluate('if(document.documentElement.dataset.mode==="3d")document.querySelector("[data-toggle=mode]")?.click()');
  await wait(250);
  await evaluate('window.scrollTo(0,0)');
  fs.writeFileSync(path.join(output,'mobile.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));

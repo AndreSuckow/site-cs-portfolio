@@ -203,3 +203,18 @@ html[data-mobile-reading] .snes-pad .dock__dpad:has(button:active),html[data-mob
 .discman-player ol button{width:100%;text-align:left}
 .notebook-inspector[data-object="discman"] .notebook-inspector__viewport{flex:0 0 min(42dvh,380px);min-height:220px}
 @media(max-width:600px){.discman-player ol{grid-template-columns:1fr}}
+/* The TV owns navigation while its tab menu is showing. */
+html[data-mode="3d"][data-tv-menu="visible"] .site-nav{display:none}
+html[data-mode="3d"] .site-header .toggles{margin-left:auto}
+html[data-mode="2d"] .site-header{position:fixed;inset:0 0 auto;z-index:20}
+html[data-mode="2d"] .site-nav{display:block}
+html[data-mode="2d"] .game-nav{display:none}
+@media(max-width:1100px){
+ html[data-mode="2d"]{--header-h:112px}
+ html[data-mode="2d"] .site-header__bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;height:112px;padding-block:8px}
+ html[data-mode="2d"] .site-nav{grid-column:1/-1;grid-row:2;min-width:0;width:100%;margin:0}
+ html[data-mode="2d"] .site-nav ul{max-width:100%;overflow-x:auto;white-space:nowrap;gap:4px}
+ html[data-mode="2d"] .site-nav li{flex:0 0 auto}
+ html[data-mode="2d"] .site-nav a{min-height:44px;padding-inline:10px}
+ html[data-mode="2d"] .toggles{grid-column:2;grid-row:1;margin:0}
+}
