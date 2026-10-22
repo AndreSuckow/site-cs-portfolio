@@ -1,6 +1,10 @@
 // Fit the object's rotation envelope inside the viewport, reserving its side actions.
 export const inspectionZoom={min:.55,initial:.78,max:1};
 export const clampInspectionZoom=value=>Math.max(inspectionZoom.min,Math.min(inspectionZoom.max,value));
+// A mesh's eight box corners conservatively contain every vertex, at any rotation.
+export function inspectionBoundsPoints({min,max}){
+ const points=[];for(const x of [min.x,max.x])for(const y of [min.y,max.y])for(const z of [min.z,max.z])points.push({x,y,z});return points;
+}
 // Fit and center the visible geometry without clipping the open lid or the controls.
 export function inspectionPointDistance({width,height,points,fov=38,padding=24}){
  const tangent=Math.tan(fov*Math.PI/360),vertical=tangent*Math.max(.1,(height-2*padding)/height),horizontal=tangent*Math.max(.1,(width-2*padding)/height);

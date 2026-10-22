@@ -1,6 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectionLayout,inspectionPointFrame,inspectionZoom,clampInspectionZoom} from './public/inspection-layout.js';
+import {inspectionLayout,inspectionPointFrame,inspectionBoundsPoints,inspectionZoom,clampInspectionZoom} from './public/inspection-layout.js';
+
+test('eight conservative corners frame dense geometry through rotation without visiting every vertex',()=>{
+ const bounds={min:{x:-1.3,y:-.4,z:-.7},max:{x:1.7,y:1.6,z:.8}},corners=inspectionBoundsPoints(bounds);assert.equal(corners.length,8);
+ for(const angle of [0,.4,1.2,2.7]){
+  const rotate=({x,y,z})=>({x:x*Math.cos(angle)-z*Math.sin(angle),y,z:x*Math.sin(angle)+z*Math.cos(angle)});
+  const frame=inspectionPointFrame({width:664,height:242,points:corners.map(rotate)}),factor=242/(2*Math.tan(38*Math.PI/360));
+  for(let i=0;i<2000;i++){
+   const p=rotate({x:bounds.min.x+(bounds.max.x-bounds.min.x)*(i%37)/36,y:bounds.min.y+(bounds.max.y-bounds.min.y)*(i%53)/52,z:bounds.min.z+(bounds.max.z-bounds.min.z)*(i%29)/28});
+   const x=332+p.x/(frame.distance-p.z)*factor-frame.viewOffsetX,y=121-p.y/(frame.distance-p.z)*factor-frame.viewOffsetY;
+   assert(x>=23.99&&x<=640.01);assert(y>=23.99&&y<=218.01);
+  }
+ }
+});
 
 test('rotatable inspection volumes stay inside landscape and portrait safe areas, away from side actions',()=>{
  for(const [width,height] of [[844,390],[667,375],[568,320],[390,844],[1440,1000]]){

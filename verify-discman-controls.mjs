@@ -27,6 +27,7 @@ try{
  const targets=await (await fetch(`http://${new URL(endpoint).host}/json/list`)).json();
  page=await connect(targets.find(target=>target.type==='page').webSocketDebuggerUrl);
  await page.send('Page.enable');await page.send('Runtime.enable');await page.send('Network.enable');
+ await page.send('Page.addScriptToEvaluateOnNewDocument',{source:`window.__inspectionDraws={room:0,object:0};for(const name of ['drawElements','drawArrays']){const native=WebGL2RenderingContext.prototype[name];WebGL2RenderingContext.prototype[name]=function(...args){window.__inspectionDraws[this.canvas.hasAttribute('data-notebook-canvas')?'object':'room']++;return native.apply(this,args);};}`});
  await page.send('Page.addScriptToEvaluateOnNewDocument',{source:'try{localStorage.setItem("andre:prefs",JSON.stringify({...JSON.parse(localStorage.getItem("andre:prefs")||"{}"),mode:"2d"}))}catch{}'});
  const evaluate=async expression=>{const result=await page.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
  const until=async(expression,label)=>{for(let i=0;i<150;i++){if(await evaluate(expression))return;await wait(60);}throw Error(`Timed out: ${label}`);};
@@ -40,7 +41,9 @@ try{
  await evaluate('document.querySelector("[data-room-inspect=discman]").click()');
  await until('document.querySelector("#games-notebook").open&&document.querySelector("[data-notebook-canvas]").dataset.ready==="true"','discman');
  await until('document.querySelector("[data-notebook-canvas]").getAnimations().every(a=>a.playState==="finished")','animation');await wait(200);
- const objectBounds=()=>evaluate(`(()=>{const c=document.querySelector('[data-notebook-canvas]'),r=c.getBoundingClientRect(),g=c.getContext('webgl2')||c.getContext('webgl');const copy=document.createElement('canvas');copy.width=c.width;copy.height=c.height;const ctx=copy.getContext('2d');ctx.drawImage(c,0,0);const d=ctx.getImageData(0,0,c.width,c.height).data;let left=c.width,top=c.height,right=0,bottom=0;for(let y=0;y<c.height;y+=2)for(let x=0;x<c.width;x+=2)if(d[(y*c.width+x)*4+3]>40){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}return {left:r.x+left/c.width*r.width,top:r.y+top/c.height*r.height,right:r.x+right/c.width*r.width,bottom:r.y+bottom/c.height*r.height,area:{left:r.left,top:r.top,right:r.right,bottom:r.bottom}}})()`);
+ await evaluate('window.__inspectionDraws={room:0,object:0}');await until('window.__inspectionDraws.object>0','inspection continues drawing');
+ const drawCounts=await evaluate('window.__inspectionDraws');assert.equal(drawCounts.room,0,'Room rendering suspends behind inspection: '+JSON.stringify(drawCounts));
+ const objectBounds=()=>evaluate(`(async()=>{for(let attempt=0;attempt<60;attempt++){await new Promise(requestAnimationFrame);const c=document.querySelector('[data-notebook-canvas]'),r=c.getBoundingClientRect(),g=c.getContext('webgl2')||c.getContext('webgl');const copy=document.createElement('canvas');copy.width=c.width;copy.height=c.height;const ctx=copy.getContext('2d');ctx.drawImage(c,0,0);const d=ctx.getImageData(0,0,c.width,c.height).data;let left=c.width,top=c.height,right=0,bottom=0;for(let y=0;y<c.height;y+=2)for(let x=0;x<c.width;x+=2)if(d[(y*c.width+x)*4+3]>40){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}if(right>0)return {left:r.x+left/c.width*r.width,top:r.y+top/c.height*r.height,right:r.x+right/c.width*r.width,bottom:r.y+bottom/c.height*r.height,area:{left:r.left,top:r.top,right:r.right,bottom:r.bottom}}}throw Error("No rendered inspection frame")})()`);
  const bounds=await objectBounds();console.log('Desktop bounds',bounds);assert(bounds.right-bounds.left>450&&bounds.bottom-bounds.top>450,'Discman opens large on desktop');
  const physicalTargets=await evaluate(`(()=>{const c=document.querySelector('[data-notebook-canvas]'),groups={};for(let y=${Math.floor(bounds.bottom-90)};y<${Math.ceil(bounds.bottom)};y+=4)for(let x=${Math.floor((bounds.left+bounds.right)/2)};x<${Math.ceil(bounds.right)};x+=4){c.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,clientX:x,clientY:y,pointerId:1}));if(c.title){(groups[c.title]||=[]).push({x,y});}}return Object.fromEntries(Object.entries(groups).map(([name,points])=>{const bottom=Math.max(...points.map(p=>p.y)),row=points.filter(p=>p.y>bottom-12);return [name,{point:row[Math.floor(row.length/2)],count:points.length}]}))})()`);console.log('Physical physicalTargets',physicalTargets);
  const move=p=>page.send('Input.dispatchMouseEvent',{type:'mouseMoved',...p});
@@ -71,6 +74,13 @@ try{
  await click(physicalTargets['Pausar'].point);await until('window.__discAudio.every(a=>a.paused)','physical pause after volume adjustment');
  await evaluate('document.querySelector("[data-notebook-canvas]").focus()');
  for(const [key,code] of [['o','KeyO'],['p','KeyP']]){await page.send('Input.dispatchKeyEvent',{type:'keyDown',key,code});await page.send('Input.dispatchKeyEvent',{type:'keyUp',key,code});await until(key==='o'?'window.__discAudio.some(a=>!a.paused)':'window.__discAudio.every(a=>a.paused)','keyboard '+key);}
+ const grip={x:(bounds.left+bounds.right)/2,y:(bounds.top+bounds.bottom)/2};
+ await move(grip);await press(grip);await move({x:grip.x+60,y:grip.y-35});
+ await until('getComputedStyle(document.querySelector("[data-model-controls]")).visibility==="hidden"','rotation skips marker picking');
+ await release({x:grip.x+60,y:grip.y-35});
+ await until('getComputedStyle(document.querySelector("[data-model-controls]")).visibility==="visible"','release restores interactive markers');
+ assert(await evaluate('document.querySelector("[data-notebook-canvas]").dataset.lid==="open"'),'Dragging does not activate OPEN');
+ await evaluate('document.querySelector("[data-notebook-canvas]").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}))');
  for(const [width,height] of [[1440,900],[844,390],[568,320],[390,844]]){
   await page.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1000});await wait(250);
   for(const direction of ['in','out']){
@@ -88,5 +98,6 @@ try{
   fs.writeFileSync(path.join(output,'discman-controls-'+width+'.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  }
  await evaluate('document.querySelector("[data-notebook-close]").click()');await until('window.__discAudio.every(a=>a.paused)','close pauses audio');
+ await until('window.__inspectionDraws.room>0','room rendering resumes after inspection');
  assert.equal(page.errors.length,0,JSON.stringify(page.errors));console.log('PASS: physical OPEN closes the lid, keyboard and mobile touch reopen it; visible markers, physical playback, volume wheel and bounded mobile/desktop zoom.');
 }finally{page?.close();if(browser){await browser.send('Browser.close').catch(()=>{});browser.close();}else child?.kill();}

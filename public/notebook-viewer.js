@@ -2,10 +2,11 @@
 // Uses the room engine's Three.js runtime instead of loading a second copy.
 import {drawDiscmanDisplay} from './discman.js?v=cs-mode-3';
 import {discmanState} from './discman-player.js?v=cs-mode-3';
-import {inspectionLayout,inspectionPointFrame,inspectionZoom,clampInspectionZoom} from './inspection-layout.js?v=cs-mode-3';
+import {accelerateInspectionPicking} from './inspection-picking.js?v=cs-mode-3';
+import {inspectionLayout,inspectionPointFrame,inspectionBoundsPoints,inspectionZoom,clampInspectionZoom} from './inspection-layout.js?v=cs-mode-3';
 export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const {Scene,Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,BasicMaterial,Material,HemisphereLight,DirectionalLight,CanvasTexture,PerspectiveCamera,Renderer,Raycaster,Vector2,Box3,Vector3,SRGB}=T;
- const renderer=new Renderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.outputColorSpace=SRGB;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0,0);
+ const renderer=new Renderer({canvas,alpha:true,antialias:true});renderer.outputColorSpace=SRGB;renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setClearColor(0,0);
  const scene=new Scene(),book=new Group(),camera=new PerspectiveCamera(38,1,.1,30);scene.add(book);camera.position.set(0,0,6.2);
  scene.add(new HemisphereLight(0xfff4df,0x323b59,1.6));const key=new DirectionalLight(0xfff1d9,3);key.position.set(-3,5,6);scene.add(key);const fill=new DirectionalLight(0xb5cdff,.7);fill.position.set(4,0,-2);scene.add(fill);
  const resources=[],materials=[],listeners=[];let active=false,frame=0,zoom=inspectionZoom.initial,distance=6.2,offsetX=0;
@@ -68,7 +69,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   object.traverse(mesh=>{
    if(!mesh.isMesh)return;
    mesh.geometry=mesh.geometry.clone();resources.push(mesh.geometry);
-   if(discman){const positions=mesh.geometry.attributes.position,index=mesh.geometry.index,tight=new Box3(),points=[],seen=new Set();for(let i=0;i<(index?index.count:positions.count);i++){const vertex=index?index.getX(i):i;if(seen.has(vertex))continue;seen.add(vertex);const point=new Vector3().fromBufferAttribute(positions,vertex);tight.expandByPoint(point);points.push(point);}mesh.geometry.boundingBox=tight;inspectionPoints.set(mesh.geometry,points);}
+   if(discman){const positions=mesh.geometry.attributes.position,index=mesh.geometry.index,tight=new Box3(),point=new Vector3();for(let i=0;i<(index?index.count:positions.count);i++){point.fromBufferAttribute(positions,index?index.getX(i):i);tight.expandByPoint(point);}mesh.geometry.boundingBox=tight;inspectionPoints.set(mesh.geometry,inspectionBoundsPoints(tight).map(point=>new Vector3(point.x,point.y,point.z)));}
    const convert=m=>{
     const copy=m.isMeshStandardMaterial?m.clone():material({color:m.color,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:.72,metalness:.04});
     if(m.isMeshStandardMaterial)materials.push(copy);
@@ -79,6 +80,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
     return copy;
    };
    mesh.material=Array.isArray(mesh.material)?mesh.material.map(convert):convert(mesh.material);
+   if(discman)accelerateInspectionPicking(mesh,Vector3);
   });
   book.add(object);object.updateMatrixWorld(true);
   const bounds=discman?visibleBounds(object):new Box3().setFromObject(object),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());
@@ -98,13 +100,31 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   const button=document.createElement('button');button.type='button';button.className='model-control';button.dataset.modelAction=action;button.setAttribute('aria-label',actionLabels[action]);button.innerHTML='<span class="model-control__dot" aria-hidden="true"></span><span class="model-control__label"></span>';button.lastElementChild.textContent=actionLabels[action];controlLayer.append(button);
   const bounds=new Box3().setFromObject(object),center=bounds.getCenter(new Vector3());if(action==='volume'){center.z=bounds.max.z;center.y+=.15*(bounds.max.y-bounds.min.y);}object.worldToLocal(center);controls.push({object,action,button,center});
  }
- let controlSignature='';
- function updateControls(){
+ let controlSignature='',lastControlCheck=-Infinity,visibilityDirty=true;
+ function updateControls(time){
+  // Rotating does not need triangle picking. Restore the markers on release.
+  const rotating=pointers.size&&buttonPress?.action!=='volume';controlLayer.style.visibility=rotating?'hidden':'';if(rotating){controlSignature='';lastControlCheck=-Infinity;return;}
   const r=canvas.getBoundingClientRect();
-  const signature=[book.rotation.x,book.rotation.y,lid?.rotation.z,lidOpen,!!lidMotion,zoom,distance,discmanState.volume,r.width,r.height].join('/');if(signature===controlSignature)return;controlSignature=signature;
-  for(const control of controls){const point=control.object.localToWorld(control.center.clone()),projected=point.clone().project(camera),owns=hit=>{for(let object=hit?.object;object;object=object.parent)if(object===control.object)return true;return false;};ray.setFromCamera(new Vector2(projected.x,projected.y),camera);const front=visibleIntersections()[0],distance=camera.position.distanceTo(point);let occluded=!!(front&&!owns(front)&&front.distance<distance-.035);
-   if(occluded&&['lid','volume'].includes(control.action)){const bounds=visibleBounds(control.object),corners=[];for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z])corners.push(new Vector3(x,y,z).project(camera));const minX=Math.min(...corners.map(p=>p.x)),maxX=Math.max(...corners.map(p=>p.x)),minY=Math.min(...corners.map(p=>p.y)),maxY=Math.max(...corners.map(p=>p.y));search:for(const y of [.75,.5,.25])for(const x of [.5,.25,.75]){const candidate=new Vector2(minX+(maxX-minX)*x,minY+(maxY-minY)*y);ray.setFromCamera(candidate,camera);if(owns(visibleIntersections()[0])){projected.x=candidate.x;projected.y=candidate.y;occluded=false;break search;}}}
-   control.button.hidden=Math.abs(projected.x)>1||Math.abs(projected.y)>1||projected.z>1||occluded;control.button.style.left=(projected.x+1)/2*r.width+'px';control.button.style.top=(1-projected.y)/2*r.height+'px';
+  const signature=[book.rotation.x,book.rotation.y,lid?.rotation.z,lidOpen,!!lidMotion,zoom,distance,discmanState.volume,r.width,r.height].join('/'),changed=signature!==controlSignature;
+  if(changed)visibilityDirty=true;const checkVisibility=visibilityDirty&&time-lastControlCheck>=120;
+  if(!changed&&!checkVisibility)return;controlSignature=signature;
+  if(checkVisibility){lastControlCheck=time;visibilityDirty=false;}
+  for(const control of controls){
+   const point=control.object.localToWorld((checkVisibility?control.center:control.visibleCenter||control.center).clone()),projected=point.clone().project(camera);
+   if(checkVisibility){
+    const owns=hit=>{for(let object=hit?.object;object;object=object.parent)if(object===control.object)return true;return false;};
+    ray.setFromCamera(new Vector2(projected.x,projected.y),camera);const front=visibleIntersections()[0],distance=camera.position.distanceTo(point);
+    control.occluded=!!(front&&!owns(front)&&front.distance<distance-.035);control.visibleCenter=null;
+    if(control.occluded&&['lid','volume'].includes(control.action)){
+     const corners=inspectionBoundsPoints(visibleBounds(control.object)).map(p=>new Vector3(p.x,p.y,p.z).project(camera));
+     const minX=Math.min(...corners.map(p=>p.x)),maxX=Math.max(...corners.map(p=>p.x)),minY=Math.min(...corners.map(p=>p.y)),maxY=Math.max(...corners.map(p=>p.y));
+     search:for(const y of [.75,.5,.25])for(const x of [.5,.25,.75]){
+      const candidate=new Vector2(minX+(maxX-minX)*x,minY+(maxY-minY)*y);ray.setFromCamera(candidate,camera);const hit=visibleIntersections()[0];
+      if(owns(hit)){projected.x=candidate.x;projected.y=candidate.y;control.visibleCenter=control.object.worldToLocal(hit.point.clone());control.occluded=false;break search;}
+     }
+    }
+   }
+   control.button.hidden=Math.abs(projected.x)>1||Math.abs(projected.y)>1||projected.z>1||control.occluded;control.button.style.left=(projected.x+1)/2*r.width+'px';control.button.style.top=(1-projected.y)/2*r.height+'px';
    if(control.action==='lid'){const label=lidOpen?'Fechar tampa':'Abrir tampa';control.button.setAttribute('aria-label',label);control.button.setAttribute('aria-expanded',String(lidOpen));control.button.setAttribute('aria-busy',String(!!lidMotion));control.button.lastElementChild.textContent=label;}
   }
  }
@@ -113,8 +133,29 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   else document.dispatchEvent(new CustomEvent('discman:control',{detail:action}));
  }
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
- function render(time=0){frame=0;if(!active)return;if(discman){if(lidMotion){const t=discmanState.reduced?1:clamp((time-lidMotion.start)/650,0,1);lid.rotation.z=lidMotion.from+(lidMotion.to-lidMotion.from)*(t*t*(3-2*t));if(t===1)lidMotion=null;}for(const {object,rest} of volumeWheels)object.rotation.y=rest+(discmanState.volume-.7)*Math.PI*2;for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}if(closeView){const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,lid?.rotation.z,r.width,r.height].join('/');if(signature!==boxSignature){boxSignature=signature;book.updateMatrixWorld(true);({distance,viewOffsetX,viewOffsetY}=inspectionPointFrame({width:r.width,height:r.height,points:framePoints(),fov:camera.fov}));}}}camera.zoom=zoom;if(closeView){const r=canvas.getBoundingClientRect();camera.setViewOffset(r.width,r.height,viewOffsetX*zoom,viewOffsetY*zoom,r.width,r.height);}camera.position.set(offsetX/zoom,0,distance);camera.far=Math.max(30,distance+radius*3);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman){updateControls();schedule();}}
- function schedule(){if(active&&!frame)frame=requestAnimationFrame(render);}
+ let dirty=true,lastDisplay=-Infinity,displaySignature='';
+ function render(time=0){
+  frame=0;if(!active)return;
+  const stateSignature=[discmanState.title,discmanState.index,discmanState.playing,discmanState.volume,discmanState.reduced].join('/');
+  const displayDue=discman&&(stateSignature!==displaySignature||!discmanState.reduced&&time-lastDisplay>=1000/15);
+  if(!dirty&&!lidMotion&&!displayDue&&!visibilityDirty){if(discman)frame=requestAnimationFrame(render);return;}
+  dirty=false;
+  if(discman){
+   if(lidMotion){const t=discmanState.reduced?1:clamp((time-lidMotion.start)/650,0,1);lid.rotation.z=lidMotion.from+(lidMotion.to-lidMotion.from)*(t*t*(3-2*t));if(t===1)lidMotion=null;}
+   for(const {object,rest} of volumeWheels)object.rotation.y=rest+(discmanState.volume-.7)*Math.PI*2;
+   if(displayDue){lastDisplay=time;displaySignature=stateSignature;for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}
+   if(closeView){
+    const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,lid?.rotation.z,r.width,r.height].join('/');
+    if(signature!==boxSignature){boxSignature=signature;book.updateMatrixWorld(true);({distance,viewOffsetX,viewOffsetY}=inspectionPointFrame({width:r.width,height:r.height,points:framePoints(),fov:camera.fov}));}
+   }
+  }
+  camera.zoom=zoom;
+  if(closeView){const r=canvas.getBoundingClientRect();camera.setViewOffset(r.width,r.height,viewOffsetX*zoom,viewOffsetY*zoom,r.width,r.height);}
+  camera.position.set(offsetX/zoom,0,distance);camera.far=Math.max(30,distance+radius*3);camera.updateProjectionMatrix();renderer.render(scene,camera);
+  if(discman){updateControls(time);frame=requestAnimationFrame(render);}
+ }
+ function schedule(){dirty=true;if(active&&!frame)frame=requestAnimationFrame(render);}
+
  function setZoom(value){
   zoom=clampInspectionZoom(value);
   zoomIn.disabled=zoom>=inspectionZoom.max;zoomOut.disabled=zoom<=inspectionZoom.min;
@@ -152,7 +193,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   else{book.rotation.y+=dx*.009;book.rotation.x=clamp(book.rotation.x+dy*.007,-1.35,1.35);}
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});schedule();
  });
- function release(e){if(buttonPress?.id===e.pointerId){const press=buttonPress;buttonPress=null;if(press.action!=='volume'&&e.type==='pointerup'&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<=8)activate(press.action);}pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');}
+ function release(e){if(buttonPress?.id===e.pointerId){const press=buttonPress;buttonPress=null;if(press.action!=='volume'&&e.type==='pointerup'&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<=8)activate(press.action);}pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');schedule();}
  for(const event of ['pointerup','pointercancel','lostpointercapture'])listen(viewport,event,release);
  listen(controlLayer,'click',e=>{const action=e.target.closest('[data-model-action]')?.dataset.modelAction;if(e.detail===0&&action)action==='volume'?dialog.querySelector('[data-discman-volume]').focus():activate(action);});
  listen(controlLayer,'keydown',e=>{const action=e.target.closest('[data-model-action]')?.dataset.modelAction;if(action&&['Enter',' '].includes(e.key)&&!e.repeat&&!e.isComposing){e.preventDefault();e.stopPropagation();action==='volume'?dialog.querySelector('[data-discman-volume]').focus():activate(action);}});
