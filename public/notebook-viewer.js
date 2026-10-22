@@ -2,6 +2,7 @@
 // Uses the room engine's Three.js runtime instead of loading a second copy.
 import {drawDiscmanDisplay} from './discman.js?v=cs-mode-3';
 import {discmanState} from './discman-player.js?v=cs-mode-3';
+import {inspectionLayout} from './inspection-layout.js?v=cs-mode-3';
 export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const {Scene,Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,BasicMaterial,Material,HemisphereLight,DirectionalLight,CanvasTexture,PerspectiveCamera,Renderer,Raycaster,Vector2,Box3,Vector3,SRGB}=T;
  const renderer=new Renderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.outputColorSpace=SRGB;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0,0);
@@ -61,9 +62,13 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
    if(!mesh.isMesh)return;
    mesh.geometry=mesh.geometry.clone();resources.push(mesh.geometry);
    const convert=m=>{
-    let map=null;
-    if(m.map){if(!clonedMaps.has(m.map)){const copy=m.map.clone();copy.needsUpdate=true;clonedMaps.set(m.map,copy);resources.push(copy);}map=clonedMaps.get(m.map);}
-    return material({color:m.color,map,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:m.roughness??.72,metalness:m.metalness??.04});
+    const copy=m.isMeshStandardMaterial?m.clone():material({color:m.color,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:.72,metalness:.04});
+    if(m.isMeshStandardMaterial)materials.push(copy);
+    for(const [key,value] of Object.entries(m))if(value?.isTexture){
+     if(!clonedMaps.has(value)){const texture=value.clone();texture.needsUpdate=true;clonedMaps.set(value,texture);resources.push(texture);}
+     copy[key]=clonedMaps.get(value);
+    }
+    return copy;
    };
    mesh.material=Array.isArray(mesh.material)?mesh.material.map(convert):convert(mesh.material);
   });
@@ -71,13 +76,15 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   const bounds=new Box3().setFromObject(object),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());
   object.position.sub(center);const scale=3.3/Math.max(size.x,size.y,size.z);book.scale.setScalar(scale);
  }
+ const envelope=new Box3().setFromObject(book);
+ const radius=Math.hypot(Math.max(Math.abs(envelope.min.x),Math.abs(envelope.max.x)),Math.max(Math.abs(envelope.min.y),Math.abs(envelope.max.y)),Math.max(Math.abs(envelope.min.z),Math.abs(envelope.max.z)));
  const discman=dialog.dataset.object==='discman';
  const displays=[];if(discman)book.traverse(mesh=>{if(mesh.userData.discmanScreen)displays.push(mesh.material.map);});
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
  function render(time=0){frame=0;if(!active)return;if(discman){for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}camera.zoom=zoom;camera.position.set(offsetX,0,distance);camera.updateProjectionMatrix();renderer.render(scene,camera);placeActions();if(discman)schedule();}
  function schedule(){if(active&&!frame)frame=requestAnimationFrame(render);}
  function placeActions(){
-  const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,zoom,r.width,r.height].join('/');
+  const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,zoom,r.left,r.top,r.width,r.height].join('/');
   if(signature===lastLayout)return;lastLayout=signature;
   const bounds=new Box3().setFromObject(book);let right=-Infinity,top=Infinity,bottom=-Infinity;
   for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
@@ -85,19 +92,25 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   }
   const a=actions.getBoundingClientRect();actions.style.left=Math.max(12,Math.min(r.right-a.width-12,right+18))+'px';actions.style.top=clamp((top+bottom)/2,20+a.height/2,r.bottom-20-a.height/2)+'px';
  }
- function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);const aspect=r.width/r.height;camera.aspect=aspect;const reserved=actions.getBoundingClientRect().width+32;distance=Math.max(6.2,2.05/(Math.tan(camera.fov*Math.PI/360)*Math.max(.1,(r.width-reserved)/r.height)));offsetX=distance*Math.tan(camera.fov*Math.PI/360)*aspect*reserved/r.width;lastLayout='';schedule();}
+ function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;({distance,offsetX}=inspectionLayout({width:r.width,height:r.height,actionsWidth:actions.getBoundingClientRect().width,radius,fov:camera.fov}));lastLayout='';schedule();}
  function reset(){book.rotation.set(.24,-.46,-.035);zoom=1;schedule();}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
+ listen(canvas,'animationend',()=>{lastLayout='';schedule();});
  function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return ray.intersectObject(book,true);}
  function hit(e){return intersections(e).length>0;}
+ function discmanAction(e){
+  const target=intersections(e)[0],action=target?.object.userData.discmanAction;
+  if(action!=='skip')return action;
+  const local=target.object.worldToLocal(target.point.clone());return local.z>=target.object.userData.discmanSkipMid?'previous':'next';
+ }
  let buttonPress=null;
  listen(canvas,'pointerdown',e=>{
   if(!active||e.button>0||(!pointers.size&&!hit(e)))return;
   e.preventDefault();canvas.focus({preventScroll:true});pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId);canvas.classList.add('is-held');
-  if(discman){const action=intersections(e)[0]?.object.userData.discmanAction;buttonPress=action?{action,x:e.clientX,y:e.clientY,id:e.pointerId}:null;}
+  if(discman){const action=discmanAction(e);buttonPress=action?{action,x:e.clientX,y:e.clientY,id:e.pointerId}:null;}
  });
  listen(canvas,'pointermove',e=>{
-  const before=pointers.get(e.pointerId);if(!before){if(discman)canvas.style.cursor=intersections(e)[0]?.object.userData.discmanAction?'pointer':'';return;}e.preventDefault();
+  const before=pointers.get(e.pointerId);if(!before){if(discman)canvas.style.cursor=discmanAction(e)?'pointer':'';return;}e.preventDefault();
   if(buttonPress&&Math.hypot(e.clientX-buttonPress.x,e.clientY-buttonPress.y)>8)buttonPress=null;
   const dx=e.clientX-before.x,dy=e.clientY-before.y;
   if(pointers.size===2){const other=[...pointers.entries()].find(([id])=>id!==e.pointerId)[1],oldDistance=Math.hypot(before.x-other.x,before.y-other.y),distance=Math.hypot(e.clientX-other.x,e.clientY-other.y);zoom=clamp(zoom*distance/Math.max(1,oldDistance),.65,3.5);}

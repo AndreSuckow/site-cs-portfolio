@@ -83,7 +83,7 @@ export function createNewRoom(T){
  box('Second drawer front',0,0,0,.46,.12,.025,oak,musicDrawer);box('Second drawer handle',0,0,.02,.085,.012,.016,black,musicDrawer);
  box('Second drawer bottom',0,-.045,-.17,.43,.015,.33,darkOak,musicDrawer);
  for(const x of [-.22,.22])box('Second drawer side',x,-.015,-.17,.015,.08,.33,oak,musicDrawer);
- const discman=createDiscman(T);discman.root.scale.setScalar(.78);discman.root.position.set(0,-.012,-.15);musicDrawer.add(discman.root);
+ const discman=createDiscman(T),discmanRestY=discman.root.userData.discmanModel==='sony-d150' ? .01 : -.012;discman.root.scale.setScalar(.78);discman.root.position.set(0,discmanRestY,-.15);musicDrawer.add(discman.root);
  // Wardrobe with inset panels, open center niche and suitcases above it.
  const wx=-1.45,wz=-1.02;
  box('Wardrobe back',wx,.85,-1.26,1.05,1.64,.035,darkOak);
@@ -288,7 +288,7 @@ export function createNewRoom(T){
  root.userData={version:'novo-quarto-3d',parts:partCount,batches:batches.size};
  root.add(interactive);
  function getInspectionModel(kind){
-  if(kind==='discman'){const model=discman.root.clone(true);model.rotation.x=Math.PI/2;return model;}
+  if(kind==='discman'){const model=discman.root.clone(true);model.rotation.x=discman.root.userData.discmanModel==='sony-d150' ? .9 : Math.PI/2;return model;}
   if(kind==='bible'){const model=new Group();for(const part of [bible,biblePages,bibleCover])model.add(part.clone());model.rotation.x=Math.PI/2;return model;}
   if(kind==='pokedex'){const model=pokedex.clone(true);model.rotation.set(.75,0,0);return model;}
   if(kind==='family'){const model=frame.clone(true);model.rotation.set(-.12,0,0);return model;}
@@ -312,7 +312,7 @@ export function createNewRoom(T){
   const seq=++musicSequence;
   const ready=()=>{if(seq!==musicSequence)return;callbacks.opened?.();if(T.animate&&!reduced)T.animate(discman.root.position,{y:.1,duration:.38,overwrite:true,onComplete:()=>{if(seq===musicSequence)callbacks.ready?.();}});else{discman.root.position.y=.1;callbacks.ready?.();}};
   if(T.animate&&!reduced)T.animate(musicDrawer.position,{z:open?-.51:-.743,duration:.7,ease:'power3.inOut',overwrite:true,onComplete:open?ready:undefined});else{musicDrawer.position.z=open?-.51:-.743;if(open)ready();}
-  if(!open){if(T.animate&&!reduced)T.animate(discman.root.position,{y:-.012,duration:.2,overwrite:true});else discman.root.position.y=-.012;}
+  if(!open){if(T.animate&&!reduced)T.animate(discman.root.position,{y:discmanRestY,duration:.2,overwrite:true});else discman.root.position.y=discmanRestY;}
  }
  return {root,targets:[...new Set(targets)],highlight,setDiscmanOpen,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;musicSequence++;discman.dispose();for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
 }

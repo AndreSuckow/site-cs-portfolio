@@ -106,3 +106,11 @@ Terreno em formato retangular vertical e casinhas distribuídas pela altura disp
 
 Build com base do GitHub Pages, check e 32 testes passaram, incluindo percurso, continuidade ao mudar o destino, hover e momento da atualização do painel. Chrome confirmou clique real na Pilgrim’s, chegada após dois segundos e Enter até Sua companhia, sem exceções de execução. Capturas do mapa vertical e das chegadas foram inspecionadas. A repetição integral encontrou timeout de captura nos objetos; a verificação isolada do mapa sem screenshots passou após a correção final da dica. Testes de áudio usam fixture para não depender das escolhas de músicas locais.
 
+## Discman D150 e inspeção mobile — 22/10/2026
+
+Modelo fornecido pelo usuário carregado com o GLTFLoader existente, incluindo geometria, texturas e materiais PBR. Preservadas a carcaça clara e a tampa aberta do arquivo recebido. Normalização para a gaveta, cópia independente na inspeção, LCD animado sobre o visor e ações nas malhas de play, stop e troca de faixa. Stop pausa sem trocar a música. Crédito CC BY 4.0 visível na inspeção, em CREDITS.md e na licença original do modelo.
+
+A verificação mobile encontrou a Pokédex sem margem inferior e os controles com deslocamento residual da animação. A câmera agora enquadra o volume de rotação com margem de 24 px, reservando espaço às ações. O posicionamento lateral considera a origem do canvas e é recalculado ao fim da abertura.
+
+Build com base do GitHub Pages, check (incluindo dependências externas do glTF) e 33 testes passaram. Chrome verificou os cinco objetos em 844×390, 667×375 e 568×320: limites por pixels do WebGL, controles dentro da tela, ausência de overflow horizontal, giro com toque e retorno ao quarto. Também passou a rotação vertical/horizontal com cada objeto aberto. Teste isolado confirmou o LCD animado e o clique real no play do D150, sem exceções de execução. Capturas de Bíblia e Pokédex mobile inspecionadas. `verify-inspections-mobile.mjs` mantém essa cobertura; `inspection-layout.test.mjs` cobre o volume inteiro em paisagem, retrato e desktop.
+

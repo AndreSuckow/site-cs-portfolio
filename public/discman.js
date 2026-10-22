@@ -1,4 +1,5 @@
-// Silver portable CD player and orange foam headphones, modeled locally.
+// Sony D150 by mittelwerk, CC BY 4.0; see CREDITS.md and models/discman_d150/license.txt.
+// The locally modeled player remains available if the supplied asset cannot load.
 export function drawDiscmanDisplay(canvas,state={},time=0){
  const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
  c.fillStyle='#a7b596';c.fillRect(0,0,w,h);c.fillStyle='#26382c';
@@ -9,6 +10,7 @@ export function drawDiscmanDisplay(canvas,state={},time=0){
  for(let x=14-offset;x<w;x+=width)c.fillText(title,x,81);c.restore();
 }
 export function createDiscman(T){
+ if(T.discmanScene)return createImportedDiscman(T);
  const {Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,Material,CanvasTexture,SRGB}=T;
  const root=new Group();root.name='Discman with orange headphones';
  const materials=[],resources=[];
@@ -37,4 +39,43 @@ export function createDiscman(T){
  for(let i=0;i<32;i++){const a=Math.PI+i/31*Math.PI;const x=Math.cos(a)*.18,z=Math.sin(a)*.17;const band=box(x,.034,z,.022,.012,.012,dark);band.rotation.y=-a-Math.PI/2;}
  for(const sign of [-1,1]){cylinder(sign*.166,.025,.018,.035,.042,orange);box(sign*.166,.05,.018,.023,.014,.035,dark);}
  return {root,dispose(){for(const r of resources)r.dispose();for(const m of materials)m.dispose();}};
+}
+
+function createImportedDiscman(T){
+ const {Group,Mesh,PlaneGeometry,Material,CanvasTexture,Box3,Vector3,SRGB}=T;
+ const root=new Group();root.name='Sony Discman D150';root.userData.discmanModel='sony-d150';
+ const source=T.discmanScene,resources=new Set(),materials=new Set();
+ source.updateMatrixWorld(true);
+ const bounds=new Box3().setFromObject(source),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());
+ // Authoring coordinates have the front facing +X. Center and turn it toward +Z.
+ const scale=.28/Math.max(size.x,size.z),body=new Group();body.rotation.y=-Math.PI/2;body.scale.setScalar(scale);source.position.sub(center);body.add(source);root.add(body);
+ root.updateMatrixWorld(true);let displayBounds=null;
+ source.traverse(object=>{
+  const name=object.name.replaceAll('_',' ');
+  if(/discman play button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='toggle';});
+  if(/discman stop button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='pause';});
+  if(/discman control buttons/.test(name)){
+   const meshes=[];object.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});
+   // Both skip buttons share a mesh in the asset. Resolve the button at the hit point.
+   meshes.forEach(mesh=>{mesh.geometry.computeBoundingBox();mesh.userData.discmanAction='skip';mesh.userData.discmanSkipMid=mesh.geometry.boundingBox.getCenter(new Vector3()).z;});
+  }
+  if(!object.isMesh)return;
+  resources.add(object.geometry);
+  for(const material of Array.isArray(object.material)?object.material:[object.material]){
+   materials.add(material);for(const value of Object.values(material))if(value?.isTexture)resources.add(value);
+   if(material.name==='lcd_pane')displayBounds=new Box3().setFromObject(object);
+   if(['lcd_digit','lcd_glass'].includes(material.name))object.visible=false;
+  }
+ });
+ root.updateMatrixWorld(true);
+ if(displayBounds){
+  // Bounds above are already in normalized room coordinates, after the root transform.
+  const lcdCenter=displayBounds.getCenter(new Vector3()),lcdSize=displayBounds.getSize(new Vector3());
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;drawDiscmanDisplay(canvas);
+  const map=new CanvasTexture(canvas);map.colorSpace=SRGB;resources.add(map);
+  const material=new Material({map,roughness:.48,metalness:0});materials.add(material);
+  const geometry=new PlaneGeometry(lcdSize.x*.96,lcdSize.y*.9);resources.add(geometry);
+  const display=new Mesh(geometry,material);display.position.copy(lcdCenter);display.position.z=displayBounds.max.z+.0003;display.userData.discmanScreen=true;root.add(display);
+ }
+ return {root,dispose(){for(const resource of resources)resource.dispose();for(const material of materials)material.dispose();}};
 }

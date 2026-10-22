@@ -25,7 +25,7 @@ async function toggle(){
  try{const url=new URL('./audio/discman/'+encodeURIComponent(track.file),import.meta.url).href;if(audio.src!==url)audio.src=url;await audio.play();if(current!==sequence){audio.pause();return;}pending=false;update('');}
  catch{if(current!==sequence)return;pending=false;audio.pause();update('Áudio ainda não disponível. Adicione o MP3 autorizado à pasta do Discman.');}
 }
-function control(action){if(action==='toggle')void toggle();else select(discmanState.index+(action==='next'?1:-1));}
+function control(action){if(action==='toggle')void toggle();else if(action==='pause'){sequence++;pending=false;audio.pause();update('');}else if(action==='previous'||action==='next')select(discmanState.index+(action==='next'?1:-1));}
 panel.querySelector('[data-discman-toggle]').addEventListener('click',()=>control('toggle'));
 for(const button of panel.querySelectorAll('[data-discman-skip]'))button.addEventListener('click',()=>control(button.dataset.discmanSkip));
 document.addEventListener('discman:control',event=>{if(document.querySelector('#games-notebook[open][data-object="discman"]'))control(event.detail);});

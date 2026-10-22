@@ -96,10 +96,15 @@ try{
  await until('document.querySelector("#games-notebook").open && document.querySelector("#games-notebook").dataset.object==="discman" && document.querySelectorAll("[data-discman-track]").length===5','Discman and five track positions');
  await wait(200);const displayBefore=await notebookImage();await wait(350);assert.notEqual(await notebookImage(),displayBefore,'Discman LCD scrolls the song title');
  fs.writeFileSync(path.join(output,'discman.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
- const discmanCenter=await evaluate('(()=>{const r=document.querySelector("[data-notebook-canvas]").getBoundingClientRect();return {x:r.left+r.width/2-(document.querySelector(".notebook-inspector__actions").getBoundingClientRect().width+32)/2,y:r.top+r.height/2,scale:r.height/230}})()');
+ const discmanBounds=await evaluate('(()=>{const c=document.querySelector("[data-notebook-canvas]"),r=c.getBoundingClientRect(),copy=document.createElement("canvas");copy.width=c.width;copy.height=c.height;const ctx=copy.getContext("2d");ctx.drawImage(c,0,0);const data=ctx.getImageData(0,0,c.width,c.height).data;let left=c.width,top=c.height,right=0,bottom=0;for(let y=0;y<c.height;y+=2)for(let x=0;x<c.width;x+=2)if(data[(y*c.width+x)*4+3]>40){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}return {x:r.left+left/c.width*r.width,y:r.top+top/c.height*r.height,w:(right-left)/c.width*r.width,h:(bottom-top)/c.height*r.height}})()');
  await page.send('Network.setBlockedURLs',{urls:['*audio/discman/*.mp3*']});
- let hardwarePlay=null;for(const dy of [32,36,40,44]){for(const dx of [44,48,52,56]){const point={x:discmanCenter.x+dx*discmanCenter.scale,y:discmanCenter.y+dy*discmanCenter.scale};await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',...point});if(await evaluate('document.querySelector("[data-notebook-canvas]").style.cursor==="pointer"')){hardwarePlay=point;break;}}if(hardwarePlay)break;}
- assert(hardwarePlay,'Physical play/pause button is reachable');await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...hardwarePlay,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...hardwarePlay,button:'left',clickCount:1});
+ await evaluate('document.addEventListener("discman:control",e=>window.__testedDiscmanAction=e.detail)');
+ let hardwarePlay=null;for(const y of [.9,.94,.86,.98]){for(const x of [.7,.74,.78,.82]){const point={x:discmanBounds.x+x*discmanBounds.w,y:discmanBounds.y+y*discmanBounds.h};await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',...point});if(await evaluate('document.querySelector("[data-notebook-canvas]").style.cursor==="pointer"')){
+  await evaluate('window.__testedDiscmanAction=null;document.querySelector(`[data-discman-track="0"]`)?.click()');
+  await page.send('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});
+  if(await evaluate('window.__testedDiscmanAction==="toggle"')){hardwarePlay=point;break;}
+ }}if(hardwarePlay)break;}
+ assert(hardwarePlay,'Physical D150 play/pause button is reachable');
  await until('document.querySelector("[data-discman-status]").textContent.includes("MP3 autorizado")','Missing MP3 is explained');
  assert.equal(await evaluate('document.querySelector("[data-discman-toggle]").getAttribute("aria-pressed")'),'false','Missing audio never claims playback');
  await page.send('Network.setBlockedURLs',{urls:[]});

@@ -1,5 +1,7 @@
 # Créditos e origem
 
+Discman Sony D150: modelo fornecido pelo usuário em `public/models/discman_d150/`, baseado em [“Discman D150”](https://sketchfab.com/3d-models/discman-d150-6914d1e81eeb4377b61af0e5321ede5b), de [mittelwerk](https://sketchfab.com/mittelwerk), sob [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Adaptações: escala e orientação no quarto, visor com título animado e botões físicos ligados ao player. Licença original preservada na pasta do modelo.
+
 Pôster Super Mario World: arte japonesa de Nintendo, correspondente à composição amarela enviada pelo usuário. Capa plana obtida no [OC ReMix](https://ocremix.org/game/98/super-mario-world-snes), preservada sem recorte em `public/img/poster-super-mario-world.webp`. Arte pertencente à Nintendo.
 
 Pôster Twisted Metal: composição indicada pelo usuário, obtida [nesta referência](https://www.pinterest.com/pin/twisted-metal-1995-in-2025--13862711349984593/) e otimizada em `public/img/poster-twisted-metal.webp`. Arte pertencente aos respectivos titulares, não criada por André.

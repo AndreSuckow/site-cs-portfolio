@@ -39,6 +39,16 @@ for(const file of files.filter(f=>f.endsWith('.glb'))){
   assert(!json.buffers?.some(b=>b.uri&&!b.uri.startsWith('data:')),`External buffer in ${file}`);
   assert(!json.images?.some(b=>b.uri&&!b.uri.startsWith('data:')),`External texture in ${file}`);
 }
+const gltfs=files.filter(file=>file.endsWith('.gltf'));
+for(const file of gltfs){
+ const model=JSON.parse(fs.readFileSync(file,'utf8'));assert.equal(model.asset.version,'2.0',`Invalid glTF version: ${file}`);
+ for(const ref of [...model.buffers||[],...model.images||[]]){
+  if(!ref.uri||ref.uri.startsWith('data:'))continue;
+  const asset=path.resolve(path.dirname(file),decodeURIComponent(ref.uri));
+  assert(asset.startsWith(root+path.sep)&&fs.existsSync(asset),`Missing glTF dependency: ${ref.uri}`);
+  if(ref.byteLength!==undefined)assert.equal(fs.statSync(asset).size,ref.byteLength,`Incomplete glTF buffer: ${asset}`);
+ }
+}
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 for(const id of ['stage-canvas','inicio','boot','sobre','experiencia','projetos','skills','contato','fim','contact-dialog','announcer'])assert(html.includes(`id="${id}"`),`Missing engine contract: ${id}`);
 const engine=fs.readFileSync(path.join(root,'engine.js'),'utf8');
@@ -51,4 +61,4 @@ assert.equal(profile.cvPdf,'/curriculo-andre-suckow.pdf');
 const pdf=fs.readFileSync(path.join(root,profile.cvPdf));
 assert.equal(pdf.toString('ascii',0,5),'%PDF-','Invalid PDF download');
 assert(pdf.length>1000,'Empty PDF download');
-console.log(`PASS: JavaScript syntax, ${checked} asset/link references, 5 GLB models, chapter contracts, career content and original CV download.`);
+console.log(`PASS: JavaScript syntax, ${checked} asset/link references, 5 GLB models, ${gltfs.length} glTF models and their dependencies, chapter contracts, career content and original CV download.`);

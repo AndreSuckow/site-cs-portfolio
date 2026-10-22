@@ -1,0 +1,11 @@
+Model Information:
+* title:	Discman D150
+* source:	https://sketchfab.com/3d-models/discman-d150-6914d1e81eeb4377b61af0e5321ede5b
+* author:	mittelwerk (https://sketchfab.com/mittelwerk)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Discman D150" (https://sketchfab.com/3d-models/discman-d150-6914d1e81eeb4377b61af0e5321ede5b) by mittelwerk (https://sketchfab.com/mittelwerk) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -27,9 +27,11 @@ test('Discman supports playback, pause, missing audio and reserved tracks withou
  w.eval(fs.readFileSync('public/discman-player.js','utf8').replace('export const','const').replaceAll('import.meta.url',"'http://localhost:4173/discman-player.js'"));
  const modal=d.getElementById('games-notebook');modal.setAttribute('open','');modal.dataset.object='discman';d.dispatchEvent(new w.CustomEvent('room:notebook-view',{detail:'discman'}));await new Promise(r=>setTimeout(r,0));
  assert.equal(d.querySelectorAll('[data-discman-track]').length,5);const toggle=d.querySelector('[data-discman-toggle]');toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused);assert.equal(toggle.getAttribute('aria-pressed'),'true');assert(audio.src.endsWith('/audio/discman/01-cpm22-dias-atras.mp3'));
- toggle.click();assert(audio.paused);audio.fail=true;toggle.click();await new Promise(r=>setTimeout(r,0));assert(d.querySelector('[data-discman-status]').textContent.includes('MP3 autorizado'));assert.equal(toggle.getAttribute('aria-pressed'),'false');
+ d.dispatchEvent(new w.CustomEvent('discman:control',{detail:'pause'}));assert(audio.paused);assert.equal(discmanTrackIndex(),0,'The physical stop button pauses without changing track');
+ toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused);toggle.click();assert(audio.paused);audio.fail=true;toggle.click();await new Promise(r=>setTimeout(r,0));assert(d.querySelector('[data-discman-status]').textContent.includes('MP3 autorizado'));assert.equal(toggle.getAttribute('aria-pressed'),'false');
  d.querySelector('[data-discman-track="1"]').click();toggle.click();await new Promise(r=>setTimeout(r,0));assert(audio.paused);assert(d.querySelector('[data-discman-status]').textContent.includes('reservada'));
  d.dispatchEvent(new w.CustomEvent('room:notebook-view',{detail:false}));assert(audio.paused);dom.window.close();
+ function discmanTrackIndex(){return +d.querySelector('[data-discman-track][aria-current="true"]').dataset.discmanTrack;}
 });
 test('drawer opens one notebook, preserves the game lists, and restores focus and scroll',()=>{
  const dom=new JSDOM('<html data-mode="3d" data-room-version="novo-quarto-3d"><body>'+html+'</body></html>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document;

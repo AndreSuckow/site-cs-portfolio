@@ -243,3 +243,6 @@ html[data-mode="2d"] .game-nav{display:none}
 .games-notebook.notebook-inspector .notebook-inspector__actions .notebook-inspector__tools button{width:44px;height:44px;padding:0;font:24px Inter,sans-serif;background:#0b0e1499;backdrop-filter:blur(5px);border-radius:50%;border:1px solid var(--ink-600);color:var(--tv-paper)}
 .games-notebook.notebook-inspector .notebook-inspector__actions .notebook-inspector__tools button:hover{border-color:var(--amber-400);color:var(--amber-400)}
 .games-notebook.notebook-inspector .notebook-inspector__actions .notebook-inspector__bible{position:static;inset:auto;transform:none;width:100%;max-width:none;min-height:44px;margin:14px 0 0;padding:6px 0;border:0;border-radius:0;background:transparent;backdrop-filter:none;font:14px/1.5 Inter,sans-serif;color:var(--tv-paper);white-space:normal;text-align:center;text-decoration:underline;text-underline-offset:4px;text-shadow:0 1px 5px #000}
+.notebook-inspector__credit{position:fixed;bottom:10px;left:20px;right:20px;color:var(--tv-paper);font:11px/1.5 Inter,sans-serif;text-align:left;text-shadow:0 1px 4px #000}
+.notebook-inspector__credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.notebook-inspector__credit[hidden]{display:none}
