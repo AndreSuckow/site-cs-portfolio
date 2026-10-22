@@ -42,19 +42,20 @@ export function createDiscman(T){
 }
 
 function createImportedDiscman(T){
- const {Group,Mesh,PlaneGeometry,Material,CanvasTexture,Box3,Vector3,SRGB}=T;
+ const {Group,Mesh,PlaneGeometry,Material,BasicMaterial,CanvasTexture,Box3,Vector3,SRGB}=T;
  const root=new Group();root.name='Sony Discman D150';root.userData.discmanModel='sony-d150';
  const source=T.discmanScene,resources=new Set(),materials=new Set();
  source.updateMatrixWorld(true);
  const bounds=new Box3().setFromObject(source),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());
  // Authoring coordinates have the front facing +X. Center and turn it toward +Z.
  const scale=.28/Math.max(size.x,size.z),body=new Group();body.rotation.y=-Math.PI/2;body.scale.setScalar(scale);source.position.sub(center);body.add(source);root.add(body);
- root.updateMatrixWorld(true);let displayBounds=null;
+ root.updateMatrixWorld(true);let displayBounds=null,frontTextBounds=null,volumeControl=null;const frontControls=new Map();
  source.traverse(object=>{
   const name=object.name.replaceAll('_',' ');
   const frontAction=({button00246:'previous',button45:'play',button00144:'pause'})[object.name.replace(/[^a-z0-9]/gi,'').toLowerCase()];
-  if(frontAction)object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction=frontAction;});
-  if(/volume button/.test(name)){object.userData.discmanVolumeWheel=true;object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='volume';});}
+  if(frontAction){frontControls.set(frontAction,object);object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction=frontAction;});}
+  if(/volume button/.test(name)){volumeControl=object;object.userData.discmanVolumeWheel=true;object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='volume';});}
+  if(/discman control buttons/.test(name))object.traverse(mesh=>{if(mesh.isMesh&&(Array.isArray(mesh.material)?mesh.material:[mesh.material]).some(material=>material.name==='discman_silk_screen')){frontTextBounds=new Box3().setFromObject(mesh);mesh.visible=false;}});
   if(/discman play button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='play';});
   if(/discman stop button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='pause';});
   if(!object.isMesh)return;
@@ -66,6 +67,23 @@ function createImportedDiscman(T){
   }
  });
  root.updateMatrixWorld(true);
+ // Replace the original front-panel lettering with labels attached to the model.
+ if(frontControls.size===3){
+  const controls=['previous','play','pause'].map(action=>{const bounds=new Box3().setFromObject(frontControls.get(action));return {bounds,center:bounds.getCenter(new Vector3())};});
+  const spacing=Math.abs(controls[1].center.x-controls[0].center.x),buttonHeight=Math.max(...controls.map(control=>control.bounds.max.y-control.bounds.min.y)),buttonY=Math.max(...controls.map(control=>control.center.y));
+  const volumeX=volumeControl?new Box3().setFromObject(volumeControl).getCenter(new Vector3()).x:controls[2].center.x+spacing;
+  const left=controls[0].center.x-spacing*.55,right=volumeX+spacing*.8,bottom=buttonY+buttonHeight*.62,top=buttonY+buttonHeight*2.2;
+  const width=right-left,height=top-bottom,rowY=buttonY+buttonHeight*1.08;
+  const frontZ=(frontTextBounds?.max.z??Math.max(...controls.map(control=>control.bounds.max.z)))+.00004;
+  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=Math.round(canvas.width*height/width);
+  const context=canvas.getContext('2d');context.fillStyle='#10100f';context.fillRect(0,0,canvas.width,canvas.height);context.fillStyle='#ded8c6';context.textAlign='center';context.textBaseline='middle';context.font='500 '+Math.round(canvas.height*.23)+'px Arial, sans-serif';
+  const print=(text,x,maxWidth)=>context.fillText(text,(x-left)/width*canvas.width,(top-rowY)/height*canvas.height,maxWidth/width*canvas.width);
+  ['Retroceder','Ouvir','Pausar'].forEach((text,index)=>print(text,controls[index].center.x,spacing*.92));if(volumeControl)print('VOLUME',volumeX,spacing*1.4);
+  const map=new CanvasTexture(canvas);map.colorSpace=SRGB;map.anisotropy=4;resources.add(map);
+  // The opaque ink surface also covers lettering embossed into the metal finish.
+  const material=new BasicMaterial({map,toneMapped:false});materials.add(material);
+  const geometry=new PlaneGeometry(width,height);resources.add(geometry);const label=new Mesh(geometry,material);label.name='Discman front labels: Retroceder, Ouvir, Pausar, VOLUME';label.userData.discmanControlLabel='Retroceder / Ouvir / Pausar / VOLUME';label.position.set((left+right)/2,(top+bottom)/2,frontZ);root.add(label);
+ }
  if(displayBounds){
   // Bounds above are already in normalized room coordinates, after the root transform.
   const lcdCenter=displayBounds.getCenter(new Vector3()),lcdSize=displayBounds.getSize(new Vector3());

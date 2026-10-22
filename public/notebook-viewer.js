@@ -128,6 +128,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  for(const event of ['pointerup','pointercancel','lostpointercapture'])listen(canvas,event,release);
  listen(canvas,'wheel',e=>{if(!active)return;e.preventDefault();setZoom(zoom*Math.exp(-e.deltaY*.001));},{passive:false});
  listen(canvas,'keydown',e=>{
+  if(discman&&!e.isComposing&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.repeat){const action=({o:'play',p:'pause',r:'previous',' ':'toggle',enter:'play'})[e.key.toLowerCase()];if(action){e.preventDefault();document.dispatchEvent(new CustomEvent('discman:control',{detail:action}));return;}}
   if(e.altKey||e.ctrlKey||e.metaKey)return;const arrows={ArrowLeft:[-.18,0],ArrowRight:[.18,0],ArrowUp:[0,-.14],ArrowDown:[0,.14]};
   if(arrows[e.key]){e.preventDefault();const [x,y]=arrows[e.key];book.rotation.y+=x;book.rotation.x=clamp(book.rotation.x+y,-1.35,1.35);schedule();}
   if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')reset();else setZoom(zoom*(e.key==='-'?.85:1.15));}

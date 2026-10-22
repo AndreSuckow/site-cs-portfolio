@@ -58,15 +58,17 @@ try{
  await move(wheel);await press(wheel);await move({x:wheel.x-70,y:wheel.y});await release({x:wheel.x-70,y:wheel.y});
  await until('window.__discAudio.some(a=>a.volume<.55)&&Number(document.querySelector("[data-discman-volume]").value)<55','drag left lowers volume');
  fs.writeFileSync(path.join(output,'discman-desktop-controls.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
- await evaluate('document.querySelector("[data-discman-pause]").click()');
+ await click(physicalTargets['Pausar'].point);await until('window.__discAudio.every(a=>a.paused)','physical pause after volume adjustment');
+ await evaluate('document.querySelector("[data-notebook-canvas]").focus()');
+ for(const [key,code] of [['o','KeyO'],['p','KeyP']]){await page.send('Input.dispatchKeyEvent',{type:'keyDown',key,code});await page.send('Input.dispatchKeyEvent',{type:'keyUp',key,code});await until(key==='o'?'window.__discAudio.some(a=>!a.paused)':'window.__discAudio.every(a=>a.paused)','keyboard '+key);}
  for(const [width,height] of [[1440,900],[844,390],[568,320],[390,844]]){
   await page.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1000});await wait(250);
   for(const direction of ['in','out']){
    await evaluate(`(()=>{const b=document.querySelector('[data-notebook-view=${direction}]');for(let i=0;i<12;i++)b.click()})()`);await wait(100);const b=await objectBounds();
    assert(b.left>=b.area.left+22&&b.right<=b.area.right-22&&b.top>=b.area.top+22&&b.bottom<=b.area.bottom-22,'Discman stays inside canvas at '+width+' '+direction);
   }
-  assert(await evaluate('Array.from(document.querySelectorAll(".discman-player__controls button")).every(b=>{const r=b.getBoundingClientRect();return r.width>=44&&r.height>=44&&r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight})'),'Playback buttons fit '+width);
-  assert(await evaluate('(()=>{const a=document.querySelector(".notebook-inspector__actions").getBoundingClientRect();return Array.from(document.querySelectorAll(".discman-player__controls button")).every(b=>{const r=b.getBoundingClientRect();return r.right<=a.left||r.left>=a.right||r.bottom<=a.top||r.top>=a.bottom})})()'),'Playback and zoom do not overlap '+width);
+  assert(await evaluate('getComputedStyle(document.querySelector(".discman-player__controls")).display==="none"'),'No separate playback buttons '+width);
+  assert(await evaluate('(()=>{const input=document.querySelector("[data-discman-volume]"),r=input.getBoundingClientRect(),output=document.querySelector("[data-discman-volume-value]");return r.height>=44&&r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight&&getComputedStyle(output).visibility==="visible"})()'),'Visible volume bar '+width);
   fs.writeFileSync(path.join(output,'discman-controls-'+width+'.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  }
  await evaluate('document.querySelector("[data-notebook-close]").click()');await until('window.__discAudio.every(a=>a.paused)','close pauses audio');

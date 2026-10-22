@@ -260,6 +260,7 @@ html[data-mode="2d"] .game-nav{display:none}
 .games-notebook.notebook-inspector .discman-player:focus-within{padding:12px;background:#0b0e14e6;pointer-events:auto}
 .games-notebook.notebook-inspector .discman-player:focus-within>:not([data-discman-status]){position:static;width:auto;height:auto;margin:0;padding:0;clip:auto;clip-path:none;overflow:visible;white-space:normal}
 .games-notebook.notebook-inspector .discman-player .discman-player__controls{position:static;width:auto;height:auto;margin:0;padding:0;clip:auto;clip-path:none;overflow:visible;white-space:normal;display:flex;justify-content:center;gap:8px;pointer-events:auto}
+.games-notebook.notebook-inspector .discman-player .discman-player__controls[hidden]{display:none!important}
 .games-notebook.notebook-inspector .discman-player__controls button{min-width:48px;min-height:48px;border:1px solid var(--ink-600);border-radius:8px;background:#0b0e14e6;color:var(--tv-paper);padding:8px 12px;font:600 14px/1.4 Inter,sans-serif;touch-action:manipulation;cursor:pointer}
 .games-notebook.notebook-inspector .discman-player__controls [data-discman-toggle]{min-width:144px;border-color:var(--amber-400)}
 .games-notebook.notebook-inspector .discman-player__controls button:focus-visible{outline:3px solid var(--amber-400);outline-offset:3px}
@@ -268,8 +269,8 @@ html[data-mode="2d"] .game-nav{display:none}
 .games-notebook.notebook-inspector .discman-player .discman-player__volume{position:static;display:flex;align-items:center;justify-content:center;gap:10px;width:auto;height:auto;margin:6px 0 0;padding:0;clip:auto;clip-path:none;overflow:visible;white-space:normal;color:var(--tv-paper);font:12px Inter,sans-serif;pointer-events:auto}
 .discman-player__volume input{width:140px;min-height:44px;accent-color:var(--amber-400);cursor:ew-resize}
 .discman-player__volume output{min-width:4ch;font-variant-numeric:tabular-nums}
-.games-notebook.notebook-inspector[data-object="discman"] .notebook-inspector__viewport{inset:60px 160px 144px 20px;width:auto;height:auto}
-@media(min-width:1000px) and (min-height:600px){.games-notebook.notebook-inspector[data-object="discman"] .notebook-inspector__viewport{inset:60px 192px 132px 48px;width:auto;height:auto}}
+.games-notebook.notebook-inspector[data-object="discman"] .notebook-inspector__viewport{inset:60px 160px 88px 20px;width:auto;height:auto}
+@media(min-width:1000px) and (min-height:600px){.games-notebook.notebook-inspector[data-object="discman"] .notebook-inspector__viewport{inset:60px 192px 88px 48px;width:auto;height:auto}}
 @media(orientation:landscape) and (max-height:600px){.games-notebook.notebook-inspector .discman-player{right:160px}.games-notebook.notebook-inspector .discman-player__controls button{font-size:12px;padding-inline:8px}.games-notebook.notebook-inspector .discman-player__controls [data-discman-toggle]{min-width:110px}}
 .games-notebook.notebook-inspector .discman-player [data-discman-status]:not(:empty){margin:8px auto 0;max-width:60ch;padding:4px 8px;background:#0b0e14e6;border-radius:4px}
 .games-notebook.notebook-inspector .discman-player:focus-within{padding:0;background:transparent;pointer-events:none}
