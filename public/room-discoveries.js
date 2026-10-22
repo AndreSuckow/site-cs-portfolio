@@ -3,7 +3,7 @@ const dialog=document.getElementById('games-notebook');
 const drawerFocus=document.querySelector('[data-drawer-focus]');
 let previousFocus=null,previousOverflow='',opening=false,activeObject='notebook';
 const objects={notebook:{title:'Meu caderno de jogos',hint:'Segure e arraste o caderno para girar. Use a roda do mouse ou dois dedos para aproximar.',label:'Caderno de jogos'},bible:{title:'Bíblia Sagrada',hint:'Segure e arraste para girar a Bíblia. Para ler, use o link abaixo.',label:'Bíblia Sagrada'},pokedex:{title:'Pokédex',hint:'Segure e arraste a Pokédex para examinar os detalhes.',label:'Pokédex'},family:{title:'Quadro da família',hint:'Segure e arraste o quadro para girar. Ilustração de família.',label:'Quadro da família'}};
-objects.discman={title:'Sony Discman D150',hint:'Clique nos botões do aparelho: Retroceder, Ouvir e Pausar. Arraste a rodinha para os lados; a barra abaixo indica o volume. Com o aparelho focado, use O para ouvir, P para pausar e R para retroceder.',label:'Sony Discman D150'};
+objects.discman={title:'Sony Discman D150',hint:'Os pontos âmbar indicam controles clicáveis no aparelho: OPEN abre ou fecha a tampa; Retroceder, Ouvir e Pausar controlam a música. Arraste a rodinha para os lados; a barra abaixo indica o volume. Com o aparelho focado, use O para ouvir, P para pausar, R para retroceder e A para abrir ou fechar a tampa.',label:'Sony Discman D150'};
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function openNotebook(kind='notebook'){
  if(!objects[kind])return;

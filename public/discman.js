@@ -52,6 +52,8 @@ function createImportedDiscman(T){
  root.updateMatrixWorld(true);let displayBounds=null,frontTextBounds=null,volumeControl=null;const frontControls=new Map();
  source.traverse(object=>{
   const name=object.name.replaceAll('_',' ');
+  if(object.name==='Empty_59')object.userData.discmanLid={open:object.rotation.z,closed:0};
+  if(/discman open button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='lid';});
   const frontAction=({button00246:'previous',button45:'play',button00144:'pause'})[object.name.replace(/[^a-z0-9]/gi,'').toLowerCase()];
   if(frontAction){frontControls.set(frontAction,object);object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction=frontAction;});}
   if(/volume button/.test(name)){volumeControl=object;object.userData.discmanVolumeWheel=true;object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='volume';});}

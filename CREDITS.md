@@ -1,6 +1,6 @@
 # Créditos e origem
 
-Discman Sony D150: modelo fornecido pelo usuário em `public/models/discman_d150/`, baseado em [“Discman D150”](https://sketchfab.com/3d-models/discman-d150-6914d1e81eeb4377b61af0e5321ede5b), de [mittelwerk](https://sketchfab.com/mittelwerk), sob [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Adaptações: escala e orientação no quarto, visor com título animado, botões físicos ligados ao player, rodinha de volume funcional e substituição das inscrições frontais por Retroceder, Ouvir e Pausar em elementos 3D. Arquivo e licença originais preservados na pasta do modelo.
+Discman Sony D150: modelo fornecido pelo usuário em `public/models/discman_d150/`, baseado em [“Discman D150”](https://sketchfab.com/3d-models/discman-d150-6914d1e81eeb4377b61af0e5321ede5b), de [mittelwerk](https://sketchfab.com/mittelwerk), sob [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Adaptações: escala e orientação no quarto, visor com título animado, botões físicos ligados ao player, rodinha de volume funcional, animação da dobradiça pelo botão OPEN e substituição das inscrições frontais por Retroceder, Ouvir e Pausar em elementos 3D. Arquivo e licença originais preservados na pasta do modelo.
 
 Pôster Super Mario World: arte japonesa de Nintendo, correspondente à composição amarela enviada pelo usuário. Capa plana obtida no [OC ReMix](https://ocremix.org/game/98/super-mario-world-snes), preservada sem recorte em `public/img/poster-super-mario-world.webp`. Arte pertencente à Nintendo.
 

@@ -13,6 +13,8 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const zoomIn=dialog.querySelector('[data-notebook-view="in"]'),zoomOut=dialog.querySelector('[data-notebook-view="out"]');
  const pointers=new Map(),ray=new Raycaster(),ndc=new Vector2();
  const discman=dialog.dataset.object==='discman';
+ const viewport=canvas.parentElement,controlLayer=dialog.querySelector('[data-model-controls]'),controlHint=dialog.querySelector('[data-model-controls-hint]');
+ controlLayer.replaceChildren();controlLayer.hidden=!discman;controlHint.hidden=!discman;
  const inspectionPoints=new Map();
  function* framePoints(){const meshes=[],point=new Vector3();book.updateWorldMatrix(true,true);book.traverseVisible(mesh=>{if(mesh.isMesh)meshes.push(mesh);});for(const mesh of meshes)for(const local of inspectionPoints.get(mesh.geometry)||[])yield point.copy(local).applyMatrix4(mesh.matrixWorld);}
  function visibleBounds(object){const bounds=new Box3();object.updateWorldMatrix(true,true);object.traverseVisible(mesh=>{if(!mesh.isMesh)return;if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();bounds.union(mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld));});return bounds;}
@@ -87,8 +89,31 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  let closeView=false,boxSignature='',viewOffsetX=0,viewOffsetY=0;
  const volumeWheels=[];if(discman)book.traverse(object=>{if(object.userData.discmanVolumeWheel)volumeWheels.push({object,rest:object.rotation.y});});
  const displays=[];if(discman)book.traverse(mesh=>{if(mesh.userData.discmanScreen)displays.push(mesh.material.map);});
+ let lid=null,lidOpen=true,lidMotion=null;
+ if(discman)book.traverse(object=>{if(object.userData.discmanLid)lid=object;});
+ const actionLabels={toggle:'Ouvir / pausar',play:'Ouvir',pause:'Pausar',previous:'Retroceder: faixa anterior',next:'Próxima faixa',volume:'Volume: arraste para os lados',lid:'Fechar tampa'};
+ const controls=[],controlGroups=new Map();
+ if(discman)book.traverse(mesh=>{if(!mesh.isMesh||!mesh.userData.discmanAction)return;const group=mesh.parent?.isGroup?mesh.parent:mesh;if(!controlGroups.has(group))controlGroups.set(group,mesh.userData.discmanAction);});
+ for(const [object,action] of controlGroups){
+  const button=document.createElement('button');button.type='button';button.className='model-control';button.dataset.modelAction=action;button.setAttribute('aria-label',actionLabels[action]);button.innerHTML='<span class="model-control__dot" aria-hidden="true"></span><span class="model-control__label"></span>';button.lastElementChild.textContent=actionLabels[action];controlLayer.append(button);
+  const bounds=new Box3().setFromObject(object),center=bounds.getCenter(new Vector3());if(action==='volume'){center.z=bounds.max.z;center.y+=.15*(bounds.max.y-bounds.min.y);}object.worldToLocal(center);controls.push({object,action,button,center});
+ }
+ let controlSignature='';
+ function updateControls(){
+  const r=canvas.getBoundingClientRect();
+  const signature=[book.rotation.x,book.rotation.y,lid?.rotation.z,lidOpen,!!lidMotion,zoom,distance,discmanState.volume,r.width,r.height].join('/');if(signature===controlSignature)return;controlSignature=signature;
+  for(const control of controls){const point=control.object.localToWorld(control.center.clone()),projected=point.clone().project(camera),owns=hit=>{for(let object=hit?.object;object;object=object.parent)if(object===control.object)return true;return false;};ray.setFromCamera(new Vector2(projected.x,projected.y),camera);const front=visibleIntersections()[0],distance=camera.position.distanceTo(point);let occluded=!!(front&&!owns(front)&&front.distance<distance-.035);
+   if(occluded&&['lid','volume'].includes(control.action)){const bounds=visibleBounds(control.object),corners=[];for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z])corners.push(new Vector3(x,y,z).project(camera));const minX=Math.min(...corners.map(p=>p.x)),maxX=Math.max(...corners.map(p=>p.x)),minY=Math.min(...corners.map(p=>p.y)),maxY=Math.max(...corners.map(p=>p.y));search:for(const y of [.75,.5,.25])for(const x of [.5,.25,.75]){const candidate=new Vector2(minX+(maxX-minX)*x,minY+(maxY-minY)*y);ray.setFromCamera(candidate,camera);if(owns(visibleIntersections()[0])){projected.x=candidate.x;projected.y=candidate.y;occluded=false;break search;}}}
+   control.button.hidden=Math.abs(projected.x)>1||Math.abs(projected.y)>1||projected.z>1||occluded;control.button.style.left=(projected.x+1)/2*r.width+'px';control.button.style.top=(1-projected.y)/2*r.height+'px';
+   if(control.action==='lid'){const label=lidOpen?'Fechar tampa':'Abrir tampa';control.button.setAttribute('aria-label',label);control.button.setAttribute('aria-expanded',String(lidOpen));control.button.setAttribute('aria-busy',String(!!lidMotion));control.button.lastElementChild.textContent=label;}
+  }
+ }
+ function activate(action){
+  if(action==='lid'&&lid){lidOpen=!lidOpen;lidMotion={from:lid.rotation.z,to:lid.userData.discmanLid[lidOpen?'open':'closed'],start:performance.now()};canvas.dataset.lid=lidOpen?'open':'closed';for(const control of controls)if(control.action==='lid')control.button.setAttribute('aria-busy','true');schedule();}
+  else document.dispatchEvent(new CustomEvent('discman:control',{detail:action}));
+ }
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
- function render(time=0){frame=0;if(!active)return;if(discman){for(const {object,rest} of volumeWheels)object.rotation.y=rest+(discmanState.volume-.7)*Math.PI*2;for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}if(closeView){const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,r.width,r.height].join('/');if(signature!==boxSignature){boxSignature=signature;book.updateMatrixWorld(true);({distance,viewOffsetX,viewOffsetY}=inspectionPointFrame({width:r.width,height:r.height,points:framePoints(),fov:camera.fov}));}}}camera.zoom=zoom;if(closeView){const r=canvas.getBoundingClientRect();camera.setViewOffset(r.width,r.height,viewOffsetX*zoom,viewOffsetY*zoom,r.width,r.height);}camera.position.set(offsetX/zoom,0,distance);camera.far=Math.max(30,distance+radius*3);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman)schedule();}
+ function render(time=0){frame=0;if(!active)return;if(discman){if(lidMotion){const t=discmanState.reduced?1:clamp((time-lidMotion.start)/650,0,1);lid.rotation.z=lidMotion.from+(lidMotion.to-lidMotion.from)*(t*t*(3-2*t));if(t===1)lidMotion=null;}for(const {object,rest} of volumeWheels)object.rotation.y=rest+(discmanState.volume-.7)*Math.PI*2;for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}if(closeView){const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,lid?.rotation.z,r.width,r.height].join('/');if(signature!==boxSignature){boxSignature=signature;book.updateMatrixWorld(true);({distance,viewOffsetX,viewOffsetY}=inspectionPointFrame({width:r.width,height:r.height,points:framePoints(),fov:camera.fov}));}}}camera.zoom=zoom;if(closeView){const r=canvas.getBoundingClientRect();camera.setViewOffset(r.width,r.height,viewOffsetX*zoom,viewOffsetY*zoom,r.width,r.height);}camera.position.set(offsetX/zoom,0,distance);camera.far=Math.max(30,distance+radius*3);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman){updateControls();schedule();}}
  function schedule(){if(active&&!frame)frame=requestAnimationFrame(render);}
  function setZoom(value){
   zoom=clampInspectionZoom(value);
@@ -101,21 +126,24 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  function reset(){if(discman)book.rotation.set(-.82,.04,0);else book.rotation.set(.24,-.46,-.035);setZoom(discman ? .95 : inspectionZoom.initial);}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
  listen(canvas,'animationend',schedule);
- function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return ray.intersectObject(book,true);}
+ listen(viewport,'pointerleave',()=>{if(pointers.size)return;canvas.title='';canvas.style.cursor='';for(const control of controls)control.button.classList.remove('is-hovered');});
+ function visibleIntersections(){return ray.intersectObject(book,true).filter(hit=>{for(let object=hit.object;object;object=object.parent)if(!object.visible)return false;return true;});}
+ function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return visibleIntersections();}
  function hit(e){return intersections(e).length>0;}
  function discmanAction(e){
+  const marked=e.target?.closest?.('[data-model-action]');if(marked){let nearest=null,distance=Infinity;for(const control of controls){if(control.button.hidden)continue;const r=control.button.getBoundingClientRect(),d=Math.hypot(e.clientX-r.x-r.width/2,e.clientY-r.y-r.height/2);if(d<distance){nearest=control;distance=d;}}return nearest?.action;}
   const target=intersections(e)[0],action=target?.object.userData.discmanAction;
   if(action!=='skip')return action;
   const local=target.object.worldToLocal(target.point.clone());return local.z>=target.object.userData.discmanSkipMid?'previous':'next';
  }
  let buttonPress=null;
- listen(canvas,'pointerdown',e=>{
-  if(!active||e.button>0||(!pointers.size&&!hit(e)))return;
+ listen(viewport,'pointerdown',e=>{
+  if(!active||e.button>0||(!pointers.size&&!e.target.closest?.('[data-model-action]')&&!hit(e)))return;
   e.preventDefault();canvas.focus({preventScroll:true});pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId);canvas.classList.add('is-held');
   if(discman){const action=discmanAction(e);buttonPress=action?{action,x:e.clientX,y:e.clientY,id:e.pointerId,volume:discmanState.volume}:null;}
  });
- listen(canvas,'pointermove',e=>{
-  const before=pointers.get(e.pointerId);if(!before){if(discman){const action=discmanAction(e);canvas.style.cursor=action==='volume'?'ew-resize':action?'pointer':'';canvas.title=({toggle:'Ouvir / pausar',play:'Ouvir',pause:'Pausar',previous:'Retroceder: faixa anterior',next:'Próxima faixa',volume:'Volume: arraste para os lados'})[action]||'';}return;}e.preventDefault();
+ listen(viewport,'pointermove',e=>{
+  const before=pointers.get(e.pointerId);if(!before){if(discman){const action=discmanAction(e);canvas.style.cursor=action==='volume'?'ew-resize':action?'pointer':'';canvas.title=action==='lid'?(lidOpen?'Fechar tampa':'Abrir tampa'):actionLabels[action]||'';for(const control of controls)control.button.classList.toggle('is-hovered',control.action===action);}return;}e.preventDefault();
   if(buttonPress?.action==='volume'&&pointers.size===1){document.dispatchEvent(new CustomEvent('discman:volume',{detail:buttonPress.volume+(e.clientX-buttonPress.x)/140}));pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});schedule();return;}
   if(pointers.size>1)buttonPress=null;
   if(buttonPress&&Math.hypot(e.clientX-buttonPress.x,e.clientY-buttonPress.y)>8)buttonPress=null;
@@ -124,11 +152,13 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   else{book.rotation.y+=dx*.009;book.rotation.x=clamp(book.rotation.x+dy*.007,-1.35,1.35);}
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});schedule();
  });
- function release(e){if(buttonPress?.id===e.pointerId){const press=buttonPress;buttonPress=null;if(press.action!=='volume'&&e.type==='pointerup'&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<=8)document.dispatchEvent(new CustomEvent('discman:control',{detail:press.action}));}pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');}
- for(const event of ['pointerup','pointercancel','lostpointercapture'])listen(canvas,event,release);
+ function release(e){if(buttonPress?.id===e.pointerId){const press=buttonPress;buttonPress=null;if(press.action!=='volume'&&e.type==='pointerup'&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<=8)activate(press.action);}pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');}
+ for(const event of ['pointerup','pointercancel','lostpointercapture'])listen(viewport,event,release);
+ listen(controlLayer,'click',e=>{const action=e.target.closest('[data-model-action]')?.dataset.modelAction;if(e.detail===0&&action)action==='volume'?dialog.querySelector('[data-discman-volume]').focus():activate(action);});
+ listen(controlLayer,'keydown',e=>{const action=e.target.closest('[data-model-action]')?.dataset.modelAction;if(action&&['Enter',' '].includes(e.key)&&!e.repeat&&!e.isComposing){e.preventDefault();e.stopPropagation();action==='volume'?dialog.querySelector('[data-discman-volume]').focus():activate(action);}});
  listen(canvas,'wheel',e=>{if(!active)return;e.preventDefault();setZoom(zoom*Math.exp(-e.deltaY*.001));},{passive:false});
  listen(canvas,'keydown',e=>{
-  if(discman&&!e.isComposing&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.repeat){const action=({o:'play',p:'pause',r:'previous',' ':'toggle',enter:'play'})[e.key.toLowerCase()];if(action){e.preventDefault();document.dispatchEvent(new CustomEvent('discman:control',{detail:action}));return;}}
+  if(discman&&!e.isComposing&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.repeat){const action=({o:'play',p:'pause',r:'previous',a:'lid',' ':'toggle',enter:'play'})[e.key.toLowerCase()];if(action){e.preventDefault();activate(action);return;}}
   if(e.altKey||e.ctrlKey||e.metaKey)return;const arrows={ArrowLeft:[-.18,0],ArrowRight:[.18,0],ArrowUp:[0,-.14],ArrowDown:[0,.14]};
   if(arrows[e.key]){e.preventDefault();const [x,y]=arrows[e.key];book.rotation.y+=x;book.rotation.x=clamp(book.rotation.x+y,-1.35,1.35);schedule();}
   if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')reset();else setZoom(zoom*(e.key==='-'?.85:1.15));}
@@ -138,8 +168,8 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  });
  const observer=new ResizeObserver(fit);observer.observe(canvas);reset();
  return {
-  start(){active=true;canvas.dataset.ready='true';reset();fit();},
+  start(){active=true;canvas.dataset.ready='true';if(lid)canvas.dataset.lid=lidOpen?'open':'closed';reset();fit();},
   stop(){active=false;cancelAnimationFrame(frame);frame=0;for(const id of pointers.keys())if(canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);pointers.clear();canvas.classList.remove('is-held');},
-  dispose(){this.stop();observer.disconnect();for(const remove of listeners)remove();for(const value of resources)value.dispose();for(const value of materials)value.dispose();renderer.dispose();}
+  dispose(){this.stop();observer.disconnect();controlLayer.replaceChildren();controlHint.hidden=true;for(const remove of listeners)remove();for(const value of resources)value.dispose();for(const value of materials)value.dispose();renderer.dispose();}
  };
 }

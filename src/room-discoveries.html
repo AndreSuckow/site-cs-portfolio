@@ -9,7 +9,8 @@
 <dialog id="games-notebook" class="dialog games-notebook notebook-inspector" aria-labelledby="notebook-title" aria-describedby="notebook-description" data-lenis-prevent>
  <header class="games-notebook__header"><div><p class="eyebrow">Super Nintendo · Minhas aventuras</p><h2 id="notebook-title">Meu caderno de jogos</h2></div><button type="button" class="btn" data-notebook-close>← Voltar</button></header>
  <p id="notebook-description">Segure e arraste o caderno para girar. Use a roda do mouse ou dois dedos para aproximar.</p>
- <div class="notebook-inspector__viewport"><canvas data-notebook-canvas tabindex="0" role="img" aria-label="Caderno de jogos em 3D. Arraste para girar; use as setas no teclado, mais e menos para zoom e Home para voltar à posição inicial." aria-describedby="notebook-description"></canvas></div>
+ <div class="notebook-inspector__viewport"><canvas data-notebook-canvas tabindex="0" role="img" aria-label="Caderno de jogos em 3D. Arraste para girar; use as setas no teclado, mais e menos para zoom e Home para voltar à posição inicial." aria-describedby="notebook-description"></canvas><div class="model-controls" data-model-controls role="group" aria-label="Controles do aparelho"></div></div>
+ <p class="model-controls__hint" data-model-controls-hint hidden><span aria-hidden="true">●</span> Toque nos pontos para usar o aparelho</p>
  <aside class="notebook-inspector__actions" aria-label="Ações do objeto">
   <div class="notebook-inspector__tools" role="group" aria-label="Zoom do objeto">
    <button type="button" data-notebook-view="in" aria-label="Ampliar caderno" title="Ampliar objeto (+)"><span aria-hidden="true">+</span><small>Ampliar</small></button>
