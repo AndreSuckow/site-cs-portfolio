@@ -52,13 +52,11 @@ function createImportedDiscman(T){
  root.updateMatrixWorld(true);let displayBounds=null;
  source.traverse(object=>{
   const name=object.name.replaceAll('_',' ');
-  if(/discman play button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='toggle';});
+  const frontAction=({button00246:'previous',button45:'play',button00144:'pause'})[object.name.replace(/[^a-z0-9]/gi,'').toLowerCase()];
+  if(frontAction)object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction=frontAction;});
+  if(/volume button/.test(name)){object.userData.discmanVolumeWheel=true;object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='volume';});}
+  if(/discman play button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='play';});
   if(/discman stop button/.test(name))object.traverse(mesh=>{if(mesh.isMesh)mesh.userData.discmanAction='pause';});
-  if(/discman control buttons/.test(name)){
-   const meshes=[];object.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});
-   // Both skip buttons share a mesh in the asset. Resolve the button at the hit point.
-   meshes.forEach(mesh=>{mesh.geometry.computeBoundingBox();mesh.userData.discmanAction='skip';mesh.userData.discmanSkipMid=mesh.geometry.boundingBox.getCenter(new Vector3()).z;});
-  }
   if(!object.isMesh)return;
   resources.add(object.geometry);
   for(const material of Array.isArray(object.material)?object.material:[object.material]){

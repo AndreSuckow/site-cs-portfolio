@@ -50,14 +50,25 @@ try{
    assert(object.left>4&&object.top>4&&object.right<width-4&&object.bottom<height-4,'Object fits viewport: '+kind+' '+width);
    assert(actions.left>=0&&actions.top>=0&&actions.right<=width+.5&&actions.bottom<=height+.5,'Actions fit viewport: '+kind+' '+width);
    assert(layout.scrollWidth<=width+1,'Inspection has no horizontal overflow');
+   const buttonPosition=await evaluate('(()=>{const r=document.querySelector("[data-notebook-view=in]").getBoundingClientRect();return {x:r.x,y:r.y}})()');
+   for(const direction of ['in','out']){
+    await evaluate(`(()=>{const b=document.querySelector('[data-notebook-view=${direction}]');for(let i=0;i<12;i++)b.click()})()`);await wait(100);
+    assert(await evaluate(`document.querySelector('[data-notebook-view=${direction}]').disabled`),'Zoom stops at '+direction);
+    const limited=await bounds(),p=await evaluate('(()=>{const r=document.querySelector("[data-notebook-view=in]").getBoundingClientRect();return {x:r.x,y:r.y}})()');
+    assert.deepEqual(p,buttonPosition,'Zoom controls stay fixed: '+kind+' '+width);
+    assert(limited.object.left>=23&&limited.object.top>=23&&limited.object.right<=limited.actions.left-23&&limited.object.bottom<=height-23,'Zoom stays inside reserved area: '+kind+' '+width);
+    if(direction==='in')fs.writeFileSync(path.join(output,'inspect-zoom-max-'+width+'-'+kind+'.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+   }
+   await evaluate('document.querySelector("[data-notebook-canvas]").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}))');await wait(100);
    const point={x:(object.left+object.right)/2,y:(object.top+object.bottom)/2};const before=await evaluate('document.querySelector("[data-notebook-canvas]").toDataURL()');
    await page.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...point,id:1}]});await page.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x+60,y:point.y+16,id:1}]});await page.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await wait(100);
    assert.notEqual(await evaluate('document.querySelector("[data-notebook-canvas]").toDataURL()'),before,'Touch rotates '+kind);const rotated=await bounds();assert(rotated.object.left>4&&rotated.object.top>4&&rotated.object.right<width-4&&rotated.object.bottom<height-4,'Rotated object fits: '+kind+' '+width);
+   assert.deepEqual(rotated.actions,layout.actions,'Rotation leaves controls fixed');
    if(width===844){
     await page.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-    await until('document.querySelector("[data-notebook-canvas]").width===390&&document.querySelector("[data-notebook-canvas]").height===844','portrait resize');
+    await until('innerWidth===390&&Math.abs(document.querySelector("[data-notebook-canvas]").width-document.querySelector("[data-notebook-canvas]").getBoundingClientRect().width)<1.1','portrait resize');
     await page.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:true});
-    await until('document.querySelector("[data-notebook-canvas]").width===844&&document.querySelector("[data-notebook-canvas]").height===390','landscape resize');
+    await until('innerWidth===844&&Math.abs(document.querySelector("[data-notebook-canvas]").width-document.querySelector("[data-notebook-canvas]").getBoundingClientRect().width)<1.1','landscape resize');
     await wait(100);const restored=await bounds();assert(restored.actions.right<=width+.5&&restored.actions.bottom<=height+.5,'Actions return after orientation change');
     assert(restored.object.left>4&&restored.object.top>4&&restored.object.right<width-4&&restored.object.bottom<height-4,'Object returns after orientation change');
    }

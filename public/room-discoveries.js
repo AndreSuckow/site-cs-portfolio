@@ -3,7 +3,7 @@ const dialog=document.getElementById('games-notebook');
 const drawerFocus=document.querySelector('[data-drawer-focus]');
 let previousFocus=null,previousOverflow='',opening=false,activeObject='notebook';
 const objects={notebook:{title:'Meu caderno de jogos',hint:'Segure e arraste o caderno para girar. Use a roda do mouse ou dois dedos para aproximar.',label:'Caderno de jogos'},bible:{title:'Bíblia Sagrada',hint:'Segure e arraste para girar a Bíblia. Para ler, use o link abaixo.',label:'Bíblia Sagrada'},pokedex:{title:'Pokédex',hint:'Segure e arraste a Pokédex para examinar os detalhes.',label:'Pokédex'},family:{title:'Quadro da família',hint:'Segure e arraste o quadro para girar. Ilustração de família.',label:'Quadro da família'}};
-objects.discman={title:'Sony Discman D150',hint:'Arraste para girar. Clique no botão de play/pause do aparelho ou use os controles pelo teclado.',label:'Sony Discman D150'};
+objects.discman={title:'Sony Discman D150',hint:'Botões frontais: Retroceder, Ouvir e Pausar. Arraste a rodinha para os lados para ajustar o volume, ou use o controle Volume abaixo.',label:'Sony Discman D150'};
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function openNotebook(kind='notebook'){
  if(!objects[kind])return;
@@ -12,7 +12,7 @@ function openNotebook(kind='notebook'){
  const item=objects[kind];dialog.querySelector('#notebook-title').textContent=item.title;dialog.querySelector('#notebook-description').textContent=item.hint;dialog.querySelector('[data-notebook-canvas]').setAttribute('aria-label',item.label+' em 3D. Arraste ou use as setas para girar. Mais e menos ajustam o zoom; Home reposiciona.');dialog.querySelector('.notebook-inspector__text').hidden=kind!=='notebook';dialog.querySelector('[data-room-bible]').hidden=kind!=='bible';dialog.querySelector('.notebook-inspector__error').hidden=true;dialog.dataset.object=kind;
  dialog.querySelector('.eyebrow').textContent={notebook:'Super Nintendo · Minhas aventuras',bible:'Leitura e fé',pokedex:'Coleção de jogos',family:'Memórias de família',discman:'Minha trilha sonora'}[kind];
  dialog.querySelector('.notebook-inspector__tools').setAttribute('aria-label','Zoom de '+item.label);
- const actions={left:'Girar para a esquerda',right:'Girar para a direita',in:'Aproximar',out:'Afastar',reset:'Reposicionar'};
+ const actions={in:'Ampliar',out:'Reduzir'};
  dialog.querySelectorAll('[data-notebook-view]').forEach(button=>button.setAttribute('aria-label',actions[button.dataset.notebookView]+': '+item.label));
  previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;
  document.dispatchEvent(new CustomEvent('resume:skill-open'));

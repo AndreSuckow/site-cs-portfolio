@@ -21,15 +21,21 @@ test('second drawer waits for its animation and opens only the Discman controls'
 
 test('Discman supports playback, pause, missing audio and reserved tracks without false playback',async()=>{
  const dom=new JSDOM('<body>'+html+'</body>',{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document;
- let audio;class FakeAudio extends w.EventTarget{constructor(){super();this.paused=true;this.ended=false;this.src='';audio=this;}pause(){this.paused=true;this.dispatchEvent(new w.Event('pause'));}async play(){if(this.fail)throw Error('missing');this.paused=false;this.dispatchEvent(new w.Event('play'));}load(){}removeAttribute(){this.src='';}}
+ let audio;class FakeAudio extends w.EventTarget{constructor(){super();this.paused=true;this.ended=false;this.src='';audio=this;}pause(){this.paused=true;this.dispatchEvent(new w.Event('pause'));}async play(){if(this.fail)throw Object.assign(Error('missing'),{name:this.fail==='blocked'?'NotAllowedError':'Error'});this.paused=false;this.dispatchEvent(new w.Event('play'));}load(){}removeAttribute(){this.src='';}}
  const playlist=[{title:'CPM 22 - Dias Atrás',file:'01-cpm22-dias-atras.mp3'},...Array.from({length:4},(_,i)=>({title:`Faixa ${i+2} · a escolher`,file:null}))];
  w.Audio=FakeAudio;w.matchMedia=()=>({matches:false});w.fetch=async()=>({ok:true,json:async()=>playlist});
  w.eval(fs.readFileSync('public/discman-player.js','utf8').replace('export const','const').replaceAll('import.meta.url',"'http://localhost:4173/discman-player.js'"));
  const modal=d.getElementById('games-notebook');modal.setAttribute('open','');modal.dataset.object='discman';d.dispatchEvent(new w.CustomEvent('room:notebook-view',{detail:'discman'}));await new Promise(r=>setTimeout(r,0));
  assert.equal(d.querySelectorAll('[data-discman-track]').length,5);const toggle=d.querySelector('[data-discman-toggle]');toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused);assert.equal(toggle.getAttribute('aria-pressed'),'true');assert(audio.src.endsWith('/audio/discman/01-cpm22-dias-atras.mp3'));
  d.dispatchEvent(new w.CustomEvent('discman:control',{detail:'pause'}));assert(audio.paused);assert.equal(discmanTrackIndex(),0,'The physical stop button pauses without changing track');
- toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused);toggle.click();assert(audio.paused);audio.fail=true;toggle.click();await new Promise(r=>setTimeout(r,0));assert(d.querySelector('[data-discman-status]').textContent.includes('MP3 autorizado'));assert.equal(toggle.getAttribute('aria-pressed'),'false');
+ toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused);d.querySelector('[data-discman-pause]').click();assert(audio.paused);audio.fail=true;toggle.click();await new Promise(r=>setTimeout(r,0));assert(d.querySelector('[data-discman-status]').textContent.includes('MP3 autorizado'));assert.equal(toggle.getAttribute('aria-pressed'),'false');
  d.querySelector('[data-discman-track="1"]').click();toggle.click();await new Promise(r=>setTimeout(r,0));assert(audio.paused);assert(d.querySelector('[data-discman-status]').textContent.includes('reservada'));
+ d.querySelector('[data-discman-track="0"]').click();audio.fail='blocked';toggle.click();await new Promise(r=>setTimeout(r,0));assert(audio.paused);assert(d.querySelector('[data-discman-status]').textContent.includes('navegador bloqueou'));
+ audio.fail=false;toggle.click();await new Promise(r=>setTimeout(r,0));assert(!audio.paused,'Playback can be retried after browser rejection');
+ d.dispatchEvent(new w.CustomEvent('discman:control',{detail:'play'}));assert(!audio.paused,'Ouvir never toggles playback off');
+ d.dispatchEvent(new w.CustomEvent('discman:volume',{detail:2}));assert.equal(audio.volume,1);assert.equal(d.querySelector('[data-discman-volume-value]').textContent,'100%');
+ d.dispatchEvent(new w.CustomEvent('discman:volume',{detail:-1}));assert.equal(audio.volume,0);
+ const volume=d.querySelector('[data-discman-volume]');volume.value='35';volume.dispatchEvent(new w.Event('input'));assert.equal(audio.volume,.35);
  d.dispatchEvent(new w.CustomEvent('room:notebook-view',{detail:false}));assert(audio.paused);dom.window.close();
  function discmanTrackIndex(){return +d.querySelector('[data-discman-track][aria-current="true"]').dataset.discmanTrack;}
 });

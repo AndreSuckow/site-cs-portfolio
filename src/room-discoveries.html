@@ -12,14 +12,15 @@
  <div class="notebook-inspector__viewport"><canvas data-notebook-canvas tabindex="0" role="img" aria-label="Caderno de jogos em 3D. Arraste para girar; use as setas no teclado, mais e menos para zoom e Home para voltar à posição inicial." aria-describedby="notebook-description"></canvas></div>
  <aside class="notebook-inspector__actions" aria-label="Ações do objeto">
   <div class="notebook-inspector__tools" role="group" aria-label="Zoom do objeto">
-   <button type="button" data-notebook-view="in" aria-label="Aproximar caderno">+</button>
-   <button type="button" data-notebook-view="out" aria-label="Afastar caderno">−</button>
+   <button type="button" data-notebook-view="in" aria-label="Ampliar caderno" title="Ampliar objeto (+)"><span aria-hidden="true">+</span><small>Ampliar</small></button>
+   <button type="button" data-notebook-view="out" aria-label="Reduzir caderno" title="Reduzir objeto (−)"><span aria-hidden="true">−</span><small>Reduzir</small></button>
   </div>
   <a class="notebook-inspector__bible" href="https://www.bibliaonline.com.br/ntlh/livros" data-room-bible target="_blank" rel="noopener noreferrer" hidden>Ler Bíblia Online ↗</a>
  </aside>
  <section class="discman-player" data-discman-player aria-label="Músicas do Discman" hidden>
   <p class="discman-player__title" data-discman-title>CPM 22 - Dias Atrás</p>
-  <div class="discman-player__controls"><button type="button" data-discman-skip="previous" aria-label="Faixa anterior">◀◀</button><button type="button" data-discman-toggle aria-pressed="false">▶ Reproduzir</button><button type="button" data-discman-skip="next" aria-label="Próxima faixa">▶▶</button></div>
+  <div class="discman-player__controls"><button type="button" data-discman-skip="previous" aria-label="Retroceder para a faixa anterior">↶ Retroceder</button><button type="button" data-discman-toggle aria-pressed="false">▶ Ouvir</button><button type="button" data-discman-pause>Ⅱ Pausar</button></div>
+  <label class="discman-player__volume">Volume <input type="range" min="0" max="100" step="1" value="70" data-discman-volume aria-label="Volume do Discman"><output data-discman-volume-value>70%</output></label>
   <p data-discman-status role="status" aria-live="polite"></p>
   <ol data-discman-tracks></ol>
  </section>

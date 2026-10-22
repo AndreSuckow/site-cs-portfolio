@@ -2,15 +2,20 @@
 // Uses the room engine's Three.js runtime instead of loading a second copy.
 import {drawDiscmanDisplay} from './discman.js?v=cs-mode-3';
 import {discmanState} from './discman-player.js?v=cs-mode-3';
-import {inspectionLayout} from './inspection-layout.js?v=cs-mode-3';
+import {inspectionLayout,inspectionPointFrame,inspectionZoom,clampInspectionZoom} from './inspection-layout.js?v=cs-mode-3';
 export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const {Scene,Group,Mesh,BoxGeometry,PlaneGeometry,BufferGeometry,BufferAttribute,BasicMaterial,Material,HemisphereLight,DirectionalLight,CanvasTexture,PerspectiveCamera,Renderer,Raycaster,Vector2,Box3,Vector3,SRGB}=T;
  const renderer=new Renderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.outputColorSpace=SRGB;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0,0);
  const scene=new Scene(),book=new Group(),camera=new PerspectiveCamera(38,1,.1,30);scene.add(book);camera.position.set(0,0,6.2);
  scene.add(new HemisphereLight(0xfff4df,0x323b59,1.6));const key=new DirectionalLight(0xfff1d9,3);key.position.set(-3,5,6);scene.add(key);const fill=new DirectionalLight(0xb5cdff,.7);fill.position.set(4,0,-2);scene.add(fill);
- const resources=[],materials=[],listeners=[];let active=false,frame=0,zoom=1,distance=6.2,offsetX=0;
- const actions=dialog.querySelector('.notebook-inspector__actions');let lastLayout='';
+ const resources=[],materials=[],listeners=[];let active=false,frame=0,zoom=inspectionZoom.initial,distance=6.2,offsetX=0;
+ const actions=dialog.querySelector('.notebook-inspector__actions');
+ const zoomIn=dialog.querySelector('[data-notebook-view="in"]'),zoomOut=dialog.querySelector('[data-notebook-view="out"]');
  const pointers=new Map(),ray=new Raycaster(),ndc=new Vector2();
+ const discman=dialog.dataset.object==='discman';
+ const inspectionPoints=new Map();
+ function* framePoints(){const meshes=[],point=new Vector3();book.updateWorldMatrix(true,true);book.traverseVisible(mesh=>{if(mesh.isMesh)meshes.push(mesh);});for(const mesh of meshes)for(const local of inspectionPoints.get(mesh.geometry)||[])yield point.copy(local).applyMatrix4(mesh.matrixWorld);}
+ function visibleBounds(object){const bounds=new Box3();object.updateWorldMatrix(true,true);object.traverseVisible(mesh=>{if(!mesh.isMesh)return;if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();bounds.union(mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld));});return bounds;}
  const material=options=>{const m=new Material({roughness:.72,metalness:.04,...options});materials.push(m);return m;};
  function box(w,h,d,z,m){const geometry=new BoxGeometry(w,h,d);resources.push(geometry);const mesh=new Mesh(geometry,m);mesh.position.z=z;book.add(mesh);return mesh;}
  if(!inspection){
@@ -61,6 +66,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   object.traverse(mesh=>{
    if(!mesh.isMesh)return;
    mesh.geometry=mesh.geometry.clone();resources.push(mesh.geometry);
+   if(discman){const positions=mesh.geometry.attributes.position,index=mesh.geometry.index,tight=new Box3(),points=[],seen=new Set();for(let i=0;i<(index?index.count:positions.count);i++){const vertex=index?index.getX(i):i;if(seen.has(vertex))continue;seen.add(vertex);const point=new Vector3().fromBufferAttribute(positions,vertex);tight.expandByPoint(point);points.push(point);}mesh.geometry.boundingBox=tight;inspectionPoints.set(mesh.geometry,points);}
    const convert=m=>{
     const copy=m.isMeshStandardMaterial?m.clone():material({color:m.color,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:.72,metalness:.04});
     if(m.isMeshStandardMaterial)materials.push(copy);
@@ -73,29 +79,28 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
    mesh.material=Array.isArray(mesh.material)?mesh.material.map(convert):convert(mesh.material);
   });
   book.add(object);object.updateMatrixWorld(true);
-  const bounds=new Box3().setFromObject(object),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());
+  const bounds=discman?visibleBounds(object):new Box3().setFromObject(object),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());
   object.position.sub(center);const scale=3.3/Math.max(size.x,size.y,size.z);book.scale.setScalar(scale);
  }
- const envelope=new Box3().setFromObject(book);
+ const envelope=discman?visibleBounds(book):new Box3().setFromObject(book);
  const radius=Math.hypot(Math.max(Math.abs(envelope.min.x),Math.abs(envelope.max.x)),Math.max(Math.abs(envelope.min.y),Math.abs(envelope.max.y)),Math.max(Math.abs(envelope.min.z),Math.abs(envelope.max.z)));
- const discman=dialog.dataset.object==='discman';
+ let closeView=false,boxSignature='',viewOffsetX=0,viewOffsetY=0;
+ const volumeWheels=[];if(discman)book.traverse(object=>{if(object.userData.discmanVolumeWheel)volumeWheels.push({object,rest:object.rotation.y});});
  const displays=[];if(discman)book.traverse(mesh=>{if(mesh.userData.discmanScreen)displays.push(mesh.material.map);});
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
- function render(time=0){frame=0;if(!active)return;if(discman){for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}camera.zoom=zoom;camera.position.set(offsetX,0,distance);camera.updateProjectionMatrix();renderer.render(scene,camera);placeActions();if(discman)schedule();}
+ function render(time=0){frame=0;if(!active)return;if(discman){for(const {object,rest} of volumeWheels)object.rotation.y=rest+(discmanState.volume-.7)*Math.PI*2;for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}if(closeView){const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,r.width,r.height].join('/');if(signature!==boxSignature){boxSignature=signature;book.updateMatrixWorld(true);({distance,viewOffsetX,viewOffsetY}=inspectionPointFrame({width:r.width,height:r.height,points:framePoints(),fov:camera.fov}));}}}camera.zoom=zoom;if(closeView){const r=canvas.getBoundingClientRect();camera.setViewOffset(r.width,r.height,viewOffsetX*zoom,viewOffsetY*zoom,r.width,r.height);}camera.position.set(offsetX/zoom,0,distance);camera.far=Math.max(30,distance+radius*3);camera.updateProjectionMatrix();renderer.render(scene,camera);if(discman)schedule();}
  function schedule(){if(active&&!frame)frame=requestAnimationFrame(render);}
- function placeActions(){
-  const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,zoom,r.left,r.top,r.width,r.height].join('/');
-  if(signature===lastLayout)return;lastLayout=signature;
-  const bounds=new Box3().setFromObject(book);let right=-Infinity,top=Infinity,bottom=-Infinity;
-  for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
-   const point=new Vector3(x,y,z).project(camera);right=Math.max(right,r.left+(point.x+1)*r.width/2);const py=r.top+(1-point.y)*r.height/2;top=Math.min(top,py);bottom=Math.max(bottom,py);
-  }
-  const a=actions.getBoundingClientRect();actions.style.left=Math.max(12,Math.min(r.right-a.width-12,right+18))+'px';actions.style.top=clamp((top+bottom)/2,20+a.height/2,r.bottom-20-a.height/2)+'px';
+ function setZoom(value){
+  zoom=clampInspectionZoom(value);
+  zoomIn.disabled=zoom>=inspectionZoom.max;zoomOut.disabled=zoom<=inspectionZoom.min;
+  zoomIn.title=zoomIn.disabled?'Ampliação máxima atingida':'Ampliar objeto (+)';
+  zoomOut.title=zoomOut.disabled?'Redução mínima atingida':'Reduzir objeto (−)';
+  schedule();
  }
- function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;({distance,offsetX}=inspectionLayout({width:r.width,height:r.height,actionsWidth:actions.getBoundingClientRect().width,radius,fov:camera.fov}));lastLayout='';schedule();}
- function reset(){book.rotation.set(.24,-.46,-.035);zoom=1;schedule();}
+ function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;closeView=discman;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;if(closeView){offsetX=0;boxSignature='';}else({distance,offsetX}=inspectionLayout({width:r.width,height:r.height,actionsWidth:actions.getBoundingClientRect().width,radius,fov:camera.fov}));schedule();}
+ function reset(){if(discman)book.rotation.set(-.82,.04,0);else book.rotation.set(.24,-.46,-.035);setZoom(discman ? .95 : inspectionZoom.initial);}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
- listen(canvas,'animationend',()=>{lastLayout='';schedule();});
+ listen(canvas,'animationend',schedule);
  function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return ray.intersectObject(book,true);}
  function hit(e){return intersections(e).length>0;}
  function discmanAction(e){
@@ -107,26 +112,28 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  listen(canvas,'pointerdown',e=>{
   if(!active||e.button>0||(!pointers.size&&!hit(e)))return;
   e.preventDefault();canvas.focus({preventScroll:true});pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId);canvas.classList.add('is-held');
-  if(discman){const action=discmanAction(e);buttonPress=action?{action,x:e.clientX,y:e.clientY,id:e.pointerId}:null;}
+  if(discman){const action=discmanAction(e);buttonPress=action?{action,x:e.clientX,y:e.clientY,id:e.pointerId,volume:discmanState.volume}:null;}
  });
  listen(canvas,'pointermove',e=>{
-  const before=pointers.get(e.pointerId);if(!before){if(discman)canvas.style.cursor=discmanAction(e)?'pointer':'';return;}e.preventDefault();
+  const before=pointers.get(e.pointerId);if(!before){if(discman){const action=discmanAction(e);canvas.style.cursor=action==='volume'?'ew-resize':action?'pointer':'';canvas.title=({toggle:'Ouvir / pausar',play:'Ouvir',pause:'Pausar',previous:'Retroceder: faixa anterior',next:'Próxima faixa',volume:'Volume: arraste para os lados'})[action]||'';}return;}e.preventDefault();
+  if(buttonPress?.action==='volume'&&pointers.size===1){document.dispatchEvent(new CustomEvent('discman:volume',{detail:buttonPress.volume+(e.clientX-buttonPress.x)/140}));pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});schedule();return;}
+  if(pointers.size>1)buttonPress=null;
   if(buttonPress&&Math.hypot(e.clientX-buttonPress.x,e.clientY-buttonPress.y)>8)buttonPress=null;
   const dx=e.clientX-before.x,dy=e.clientY-before.y;
-  if(pointers.size===2){const other=[...pointers.entries()].find(([id])=>id!==e.pointerId)[1],oldDistance=Math.hypot(before.x-other.x,before.y-other.y),distance=Math.hypot(e.clientX-other.x,e.clientY-other.y);zoom=clamp(zoom*distance/Math.max(1,oldDistance),.65,3.5);}
+  if(pointers.size===2){const other=[...pointers.entries()].find(([id])=>id!==e.pointerId)[1],oldDistance=Math.hypot(before.x-other.x,before.y-other.y),distance=Math.hypot(e.clientX-other.x,e.clientY-other.y);setZoom(zoom*distance/Math.max(1,oldDistance));}
   else{book.rotation.y+=dx*.009;book.rotation.x=clamp(book.rotation.x+dy*.007,-1.35,1.35);}
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});schedule();
  });
- function release(e){if(buttonPress?.id===e.pointerId){const press=buttonPress;buttonPress=null;if(e.type==='pointerup'&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<=8)document.dispatchEvent(new CustomEvent('discman:control',{detail:press.action}));}pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');}
+ function release(e){if(buttonPress?.id===e.pointerId){const press=buttonPress;buttonPress=null;if(press.action!=='volume'&&e.type==='pointerup'&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<=8)document.dispatchEvent(new CustomEvent('discman:control',{detail:press.action}));}pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(!pointers.size)canvas.classList.remove('is-held');}
  for(const event of ['pointerup','pointercancel','lostpointercapture'])listen(canvas,event,release);
- listen(canvas,'wheel',e=>{if(!active)return;e.preventDefault();zoom=clamp(zoom*Math.exp(-e.deltaY*.001),.65,3.5);schedule();},{passive:false});
+ listen(canvas,'wheel',e=>{if(!active)return;e.preventDefault();setZoom(zoom*Math.exp(-e.deltaY*.001));},{passive:false});
  listen(canvas,'keydown',e=>{
   if(e.altKey||e.ctrlKey||e.metaKey)return;const arrows={ArrowLeft:[-.18,0],ArrowRight:[.18,0],ArrowUp:[0,-.14],ArrowDown:[0,.14]};
   if(arrows[e.key]){e.preventDefault();const [x,y]=arrows[e.key];book.rotation.y+=x;book.rotation.x=clamp(book.rotation.x+y,-1.35,1.35);schedule();}
-  if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')reset();else{zoom=clamp(zoom*(e.key==='-'?.85:1.15),.65,3.5);schedule();}}
+  if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')reset();else setZoom(zoom*(e.key==='-'?.85:1.15));}
  });
  for(const button of dialog.querySelectorAll('[data-notebook-view]'))listen(button,'click',()=>{
-  switch(button.dataset.notebookView){case'in':zoom=clamp(zoom*1.25,.65,3.5);break;case'out':zoom=clamp(zoom/1.25,.65,3.5);break;}schedule();
+  setZoom(zoom*(button.dataset.notebookView==='in'?1.25:1/1.25));
  });
  const observer=new ResizeObserver(fit);observer.observe(canvas);reset();
  return {
