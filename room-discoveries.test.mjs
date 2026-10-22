@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
 const html=fs.readFileSync('src/room-discoveries.html','utf8');
+test('Discman touch controls follow device changes without reopening the player',()=>{
+ const dom=new JSDOM(html,{runScripts:'outside-only',url:'http://localhost:4173/'}),w=dom.window,d=w.document,media=new w.EventTarget();media.matches=true;
+ w.matchMedia=query=>query.includes('max-width')?media:{matches:false};w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
+ w.eval(fs.readFileSync('public/room-discoveries.js','utf8').replace(/^import .*;\r?\n/gm,''));
+ const modal=d.getElementById('games-notebook');let opens=0;d.addEventListener('room:notebook-view',()=>opens++);d.querySelector('[data-notebook-canvas]').dataset.ready='true';
+ d.querySelector('[data-room-inspect=discman]').click();d.dispatchEvent(new w.CustomEvent('room:drawer-ready'));
+ assert.equal(modal.dataset.touchControls,'true');assert.match(d.querySelector('#notebook-description').textContent,/botões grandes/);
+ media.matches=false;media.dispatchEvent(new w.Event('change'));assert.equal(modal.dataset.touchControls,'false');assert.match(d.querySelector('#notebook-description').textContent,/pontos âmbar/);
+ media.matches=true;media.dispatchEvent(new w.Event('change'));assert(modal.open);assert.equal(opens,1);assert(!d.querySelector('[data-discman-player]').hidden);assert.equal(modal.dataset.touchControls,'true');dom.window.close();
+});
 test('inspection has only plus/minus manipulation controls and the Bible link in the same side actions',()=>{
  const dom=new JSDOM(html),d=dom.window.document;
  assert.deepEqual([...d.querySelectorAll('.notebook-inspector__tools button')].map(button=>button.dataset.notebookView),['in','out']);

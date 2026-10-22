@@ -87,13 +87,19 @@ try{
    await evaluate(`(()=>{const b=document.querySelector('[data-notebook-view=${direction}]');for(let i=0;i<12;i++)b.click()})()`);await wait(100);const b=await objectBounds();
    assert(b.left>=b.area.left+22&&b.right<=b.area.right-22&&b.top>=b.area.top+22&&b.bottom<=b.area.bottom-22,'Discman stays inside canvas at '+width+' '+direction);
   }
-  assert(await evaluate('getComputedStyle(document.querySelector(".discman-player__controls")).display==="none"'),'No separate playback buttons '+width);
+  assert(await evaluate(`getComputedStyle(document.querySelector('.discman-player__controls')).display===${JSON.stringify(width<=1000?'grid':'none')}`),'Responsive playback controls '+width);
+  if(width<=1000){
+   assert(await evaluate('Array.from(document.querySelectorAll(".discman-player__controls button")).every(b=>{const r=b.getBoundingClientRect();return r.width>=80&&r.height>=52&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight})'),'Large mobile touch targets '+width);
+   assert(await evaluate('(()=>{const a=document.querySelector(".discman-player").getBoundingClientRect(),b=document.querySelector(".notebook-inspector__viewport").getBoundingClientRect();return a.left>=b.right||a.right<=b.left||a.top>=b.bottom||a.bottom<=b.top})()'),'Mobile control panel does not overlap object '+width);
+   assert(await evaluate('getComputedStyle(document.querySelector("[data-model-controls]")).display==="none"'),'No precision hotspots on mobile '+width);
+  }
   assert(await evaluate('(()=>{const input=document.querySelector("[data-discman-volume]"),r=input.getBoundingClientRect(),output=document.querySelector("[data-discman-volume-value]");return r.height>=44&&r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight&&getComputedStyle(output).visibility==="visible"})()'),'Visible volume bar '+width);
   if(width===844){
-   const touchControl=async action=>{const p=await evaluate(`(()=>{const r=document.querySelector('[data-model-action=${action}]:not([hidden])').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);await page.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...p,id:0}]});await page.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});};
-   await touchControl('lid');await until('document.querySelector("[data-model-action=lid]").getAttribute("aria-expanded")==="false"&&document.querySelector("[data-model-action=lid]").getAttribute("aria-busy")==="false"','touch closes lid');
-   await touchControl('lid');await until('document.querySelector("[data-model-action=lid]").getAttribute("aria-expanded")==="true"&&document.querySelector("[data-model-action=lid]").getAttribute("aria-busy")==="false"','touch opens lid');
+   const touchControl=async action=>{const selector=({lid:'[data-discman-lid]',play:'[data-discman-toggle]',pause:'[data-discman-pause]',previous:'[data-discman-skip=previous]'})[action],p=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);await page.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...p,id:0}]});await page.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});};
+   await touchControl('lid');await until('document.querySelector("[data-discman-lid]").getAttribute("aria-expanded")==="false"&&document.querySelector("[data-discman-lid]").getAttribute("aria-busy")==="false"','mobile panel closes lid');
+   await touchControl('lid');await until('document.querySelector("[data-discman-lid]").getAttribute("aria-expanded")==="true"&&document.querySelector("[data-discman-lid]").getAttribute("aria-busy")==="false"','mobile panel opens lid');
    await touchControl('play');await until('window.__discAudio.some(a=>!a.paused)','touch play');await touchControl('pause');await until('window.__discAudio.every(a=>a.paused)','touch pause');
+   const title=await evaluate('document.querySelector("[data-discman-title]").textContent');await touchControl('previous');await until(`document.querySelector('[data-discman-title]').textContent!==${JSON.stringify(title)}`,'mobile panel changes track');
   }
   fs.writeFileSync(path.join(output,'discman-controls-'+width+'.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  }

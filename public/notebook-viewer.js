@@ -93,6 +93,9 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const displays=[];if(discman)book.traverse(mesh=>{if(mesh.userData.discmanScreen)displays.push(mesh.material.map);});
  let lid=null,lidOpen=true,lidMotion=null;
  if(discman)book.traverse(object=>{if(object.userData.discmanLid)lid=object;});
+ const lidButton=dialog.querySelector('[data-discman-lid]');
+ function syncLidButton(){if(!discman)return;lidButton.disabled=!lid;const expanded=String(lidOpen),busy=String(!!lidMotion);if(lidButton.getAttribute('aria-expanded')!==expanded){lidButton.setAttribute('aria-expanded',expanded);lidButton.textContent=lidOpen?'Fechar tampa':'Abrir tampa';}if(lidButton.getAttribute('aria-busy')!==busy)lidButton.setAttribute('aria-busy',busy);}
+ syncLidButton();
  const actionLabels={toggle:'Ouvir / pausar',play:'Ouvir',pause:'Pausar',previous:'Retroceder: faixa anterior',next:'Próxima faixa',volume:'Volume: arraste para os lados',lid:'Fechar tampa'};
  const controls=[],controlGroups=new Map();
  if(discman)book.traverse(mesh=>{if(!mesh.isMesh||!mesh.userData.discmanAction)return;const group=mesh.parent?.isGroup?mesh.parent:mesh;if(!controlGroups.has(group))controlGroups.set(group,mesh.userData.discmanAction);});
@@ -102,6 +105,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  }
  let controlSignature='',lastControlCheck=-Infinity,visibilityDirty=true;
  function updateControls(time){
+  if(dialog.dataset.touchControls==='true'){visibilityDirty=false;controlSignature='';lastControlCheck=-Infinity;return;}
   // Rotating does not need triangle picking. Restore the markers on release.
   const rotating=pointers.size&&buttonPress?.action!=='volume';controlLayer.style.visibility=rotating?'hidden':'';if(rotating){controlSignature='';lastControlCheck=-Infinity;return;}
   const r=canvas.getBoundingClientRect();
@@ -129,7 +133,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   }
  }
  function activate(action){
-  if(action==='lid'&&lid){lidOpen=!lidOpen;lidMotion={from:lid.rotation.z,to:lid.userData.discmanLid[lidOpen?'open':'closed'],start:performance.now()};canvas.dataset.lid=lidOpen?'open':'closed';for(const control of controls)if(control.action==='lid')control.button.setAttribute('aria-busy','true');schedule();}
+  if(action==='lid'&&lid){lidOpen=!lidOpen;lidMotion={from:lid.rotation.z,to:lid.userData.discmanLid[lidOpen?'open':'closed'],start:performance.now()};canvas.dataset.lid=lidOpen?'open':'closed';for(const control of controls)if(control.action==='lid')control.button.setAttribute('aria-busy','true');syncLidButton();schedule();}
   else document.dispatchEvent(new CustomEvent('discman:control',{detail:action}));
  }
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -141,7 +145,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   if(!dirty&&!lidMotion&&!displayDue&&!visibilityDirty){if(discman)frame=requestAnimationFrame(render);return;}
   dirty=false;
   if(discman){
-   if(lidMotion){const t=discmanState.reduced?1:clamp((time-lidMotion.start)/650,0,1);lid.rotation.z=lidMotion.from+(lidMotion.to-lidMotion.from)*(t*t*(3-2*t));if(t===1)lidMotion=null;}
+   if(lidMotion){const t=discmanState.reduced?1:clamp((time-lidMotion.start)/650,0,1);lid.rotation.z=lidMotion.from+(lidMotion.to-lidMotion.from)*(t*t*(3-2*t));if(t===1)lidMotion=null;syncLidButton();}
    for(const {object,rest} of volumeWheels)object.rotation.y=rest+(discmanState.volume-.7)*Math.PI*2;
    if(displayDue){lastDisplay=time;displaySignature=stateSignature;for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}
    if(closeView){
@@ -166,12 +170,14 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;closeView=discman;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;if(closeView){offsetX=0;boxSignature='';}else({distance,offsetX}=inspectionLayout({width:r.width,height:r.height,actionsWidth:actions.getBoundingClientRect().width,radius,fov:camera.fov}));schedule();}
  function reset(){if(discman)book.rotation.set(-.82,.04,0);else book.rotation.set(.24,-.46,-.035);setZoom(discman ? .95 : inspectionZoom.initial);}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
+ listen(lidButton,'click',()=>{if(active&&discman)activate('lid');});
  listen(canvas,'animationend',schedule);
  listen(viewport,'pointerleave',()=>{if(pointers.size)return;canvas.title='';canvas.style.cursor='';for(const control of controls)control.button.classList.remove('is-hovered');});
  function visibleIntersections(){return ray.intersectObject(book,true).filter(hit=>{for(let object=hit.object;object;object=object.parent)if(!object.visible)return false;return true;});}
  function intersections(e){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);return visibleIntersections();}
  function hit(e){return intersections(e).length>0;}
  function discmanAction(e){
+  if(dialog.dataset.touchControls==='true')return;
   const marked=e.target?.closest?.('[data-model-action]');if(marked){let nearest=null,distance=Infinity;for(const control of controls){if(control.button.hidden)continue;const r=control.button.getBoundingClientRect(),d=Math.hypot(e.clientX-r.x-r.width/2,e.clientY-r.y-r.height/2);if(d<distance){nearest=control;distance=d;}}return nearest?.action;}
   const target=intersections(e)[0],action=target?.object.userData.discmanAction;
   if(action!=='skip')return action;
