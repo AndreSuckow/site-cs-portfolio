@@ -7,6 +7,9 @@ function openSkill(button) {
   const name = button.textContent.trim();
   const detail = skillDetails[name];
   if(!detail) return;
+  delete skillDialog.dataset.reward;
+  skillDialog.querySelector('[data-certification-reward]').hidden = true;
+  skillDialog.querySelector('#skill-dialog-description').textContent = 'Conheça a habilidade e como ela faz parte da minha trajetória.';
   document.querySelectorAll('.skill-item').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
   document.querySelector('.skill-description').textContent = `Habilidade desbloqueada: ${name}. ${button.dataset.note}`;
   skillDialog.querySelector('[data-skill-branch]').textContent = `Skills · ${button.closest('article').querySelector('h3').textContent}`;
@@ -39,6 +42,9 @@ function openSkill(button) {
     card.append(meta, description);
     return card;
   }));
+  showSkillDialog(button);
+}
+function showSkillDialog(button) {
   skillReturnFocus = document.documentElement.dataset.mode === '3d' ? document.getElementById('stage-canvas') : button;
   previousOverflow = document.body.style.overflow;
   skillDialog.showModal();
@@ -48,6 +54,15 @@ function openSkill(button) {
   skillDialog.querySelector('#skill-dialog-title').focus({preventScroll:true});
 }
 document.querySelectorAll('.skill-item').forEach(button => button.addEventListener('click', () => openSkill(button)));
+document.querySelector('[data-certification-open]')?.addEventListener('click', event => {
+  if(skillDialog.open) return;
+  skillDialog.dataset.reward = 'certification';
+  skillDialog.querySelector('[data-skill-branch]').textContent = 'Conquista desbloqueada · Certificação';
+  skillDialog.querySelector('#skill-dialog-title').textContent = 'Aprender para conquistar e manter clientes';
+  skillDialog.querySelector('#skill-dialog-description').textContent = 'Certificação do Sebrae em Customer Success, conforme meu currículo.';
+  skillDialog.querySelector('[data-certification-reward]').hidden = false;
+  showSkillDialog(event.currentTarget);
+});
 skillDialog.querySelectorAll('[data-skill-close]').forEach(button => button.addEventListener('click', () => skillDialog.close()));
 skillDialog.addEventListener('click', event => {
   if(event.target !== skillDialog) return;

@@ -32,6 +32,25 @@ function setup(mode='2d'){
   return {dom,window,document:window.document,dialog:window.document.getElementById('skill-dialog')};
 }
 
+test('Sebrae reward shares the skill dialog lifecycle and does not leak into skills',()=>{
+  for(const mode of ['2d','3d']){
+    const {dom,document,dialog}=setup(mode),button=document.querySelector('[data-certification-open]');
+    let opened=0,closed=0;
+    document.addEventListener('resume:skill-open',()=>opened++);
+    document.addEventListener('resume:skill-close',()=>closed++);
+    document.body.style.overflow='auto';button.focus();button.click();button.click();
+    assert(dialog.open);assert.equal(opened,1);assert.equal(dialog.dataset.reward,'certification');
+    const reward=dialog.querySelector('[data-certification-reward]');
+    assert(!reward.hidden);assert(reward.textContent.includes(profile.certification));assert(reward.textContent.includes(profile.name));
+    assert.equal(document.activeElement.id,'skill-dialog-title');assert.equal(document.body.style.overflow,'hidden');
+    dialog.close();assert.equal(closed,1);assert.equal(document.body.style.overflow,'auto');
+    assert.equal(document.activeElement,mode==='3d'?document.getElementById('stage-canvas'):button);
+    document.querySelector('.skill-item').click();assert(dialog.open);assert.equal(dialog.dataset.reward,undefined);assert(reward.hidden);
+    assert.equal(dialog.querySelector('[data-skill-definition]').textContent,details[document.querySelector('.skill-item').textContent.trim()].definition);
+    dom.window.close();
+  }
+});
+
 test('all active CS skills open their own explanation and company experiences',()=>{
   const {dom,document,dialog}=setup();
   const buttons=[...document.querySelectorAll('.skill-item')];
@@ -84,6 +103,10 @@ test('3D activation uses the actual engine action to open the same DOM modal',()
   assert(engine.includes('t.addItem({id:u,rect:d,kind:`action`,label:'));
   screen.activate({id:first.dataset.tv,kind:'action'});
   assert(dialog.open);assert.equal(dialog.querySelector('h2').textContent,first.textContent.trim());
+  dialog.close();assert.equal(document.activeElement.id,'stage-canvas');
+  screen.activate({id:'skills/certification',kind:'action'});
+  assert(dialog.open);assert.equal(dialog.dataset.reward,'certification');
+  assert(!dialog.querySelector('[data-certification-reward]').hidden);
   dialog.close();assert.equal(document.activeElement.id,'stage-canvas');
   // Navigation/selecting an item remains separate from opening its details.
   screen.onSelect=()=>{};screen.activate({id:first.dataset.tv,kind:'select'});assert(!dialog.open);
