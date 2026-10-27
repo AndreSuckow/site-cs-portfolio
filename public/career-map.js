@@ -39,8 +39,10 @@ export function drawCareerScreen(e,t,n,{companies,colors: X,Q,kv,Ev,wv,Tv,Nv}){
  Q(e,company.org,72,y+8,{size:24,color:X.sky,max:company.logo?340:458});
  const logo=t.assets.screenshots['company/'+company.id];
  if(logo){const scale=Math.min(106/logo.width,50/logo.height);e.save();e.imageSmoothingEnabled=true;e.drawImage(logo,530-logo.width*scale,y+8,logo.width*scale,logo.height*scale);e.restore();}
- Q(e,company.period.toUpperCase(),72,y+40,{size:18,color:X.muted});y+=80;Tv(e,{x:72,y,w:458,h:2},X.deep);y+=18;
- for(const text of company.bullets){if(y>panel.y+panel.h-40)break;Nv(e,'right',72,y+6,12,X.sel);y=wv(e,text,94,y,436,{size:22,color:X.text,maxLines:3,lineH:28})+10;}
+ Q(e,company.period.toUpperCase(),72,y+40,{size:18,color:X.muted});
+ if(company.workMode)Q(e,`${company.location} · ${company.workMode}`,72,y+65,{size:16,color:X.muted,max:458});
+ y+=company.workMode?100:80;Tv(e,{x:72,y,w:458,h:2},X.deep);y+=14;
+ for(const text of company.tvBullets||company.bullets){if(y>panel.y+panel.h-36)break;Nv(e,'right',72,y+5,10,X.sel);y=wv(e,text,90,y,440,{size:18,color:X.text,maxLines:3,lineH:22})+8;}
  Q(e,'MAPA DA JORNADA',773,168,{size:20,bold:true,color:X.sel,align:'center'});
  const hover=t.hoverId?.startsWith('experiencia/')?Number(t.hoverId.split('/')[1]):null;
  const focused=hover??Math.max(0,Math.min(t.selected,companies.length-1));

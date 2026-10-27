@@ -5,6 +5,28 @@ import {JSDOM} from 'jsdom';
 import {whatsappMessage} from './public/cs-model.js';
 import {createCareerJourney,drawCareerScreen} from './public/career-map.js';
 const html=fs.readFileSync('public/index.html','utf8');
+test('all resume facts are shared by the website and printable curriculum',()=>{
+ const profile=JSON.parse(fs.readFileSync('profile.json','utf8'));
+ const dom=new JSDOM(html),d=dom.window.document;
+ const cv=new JSDOM(fs.readFileSync('public/curriculo/index.html','utf8'));
+ for(const document of [d,cv.window.document]){
+  const text=document.body.textContent;
+  for(const company of profile.experience.filter(x=>!x.invitation)){
+   for(const fact of [company.role,company.org,company.period,company.workMode,...company.bullets])assert(text.includes(fact),fact);
+  }
+  for(const group of profile.tools)for(const tool of group.items)assert(text.includes(tool),tool);
+  for(const fact of [profile.education.title,profile.education.institution,profile.education.period,profile.certification,profile.language])assert(text.includes(fact),fact);
+  assert(!/Front.?end|GP Strategies|React|TypeScript|300 empresas|2018–2021|gestão logística/i.test(text));
+ }
+ assert.equal(profile.experience[0].period,'Jan 2018 – Jan 2024');
+ assert.equal(profile.location,'Curitiba – PR');
+ for(const company of profile.experience.filter(x=>!x.invitation)){
+  const caseDom=new JSDOM(fs.readFileSync(`public/cases/${company.id==='marq'?'onboarding':'implantacao'}/index.html`,'utf8'));
+  for(const bullet of company.bullets)assert(caseDom.window.document.body.textContent.includes(bullet));
+  caseDom.window.close();
+ }
+ dom.window.close();cv.window.close();
+});
 test('career travel follows the path for two seconds and changes location only on arrival',()=>{
  const stops=[[-.4,-1.93],[.25,.67],[-.4,3.27]],journey=createCareerJourney(stops);
  assert(journey.walkTo(1,0));assert.equal(journey.current,0);assert.deepEqual(journey.position,stops[0]);
@@ -93,8 +115,8 @@ test('CS content uses verified contacts and treats Sua companhia as an invitatio
  const dom=new JSDOM(html),d=dom.window.document;
  assert.equal(d.querySelectorAll('.phase').length,3);assert(d.querySelectorAll('.phase')[2].textContent.includes('Sua companhia'));
  assert(!/Front.end|React|TypeScript|WordPress/.test(d.querySelector('#inicio').textContent));
- assert(d.querySelector('#skills').textContent.includes('Desenvolvimento Front-end'));
- assert(d.querySelector('#sobre').textContent.includes('Campo Largo – PR'));
+ assert(!/Front.end|React|TypeScript|GP Strategies/.test(d.body.textContent));
+ assert(d.querySelector('#sobre').textContent.includes('Curitiba – PR'));
  assert(d.querySelector('#sobre a[href="https://www.linkedin.com/in/andresuckow/"]'));
  assert(d.querySelector('#sobre a[href="mailto:andre.suckow.dev@gmail.com"]'));
  assert.equal(d.querySelectorAll('#inicio .hero__actions .btn').length,3);
