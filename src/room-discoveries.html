@@ -54,9 +54,12 @@
  </details>
  <section class="poster-actions" data-poster-actions hidden aria-label="Jogar este pôster">
   <p data-poster-game-title></p>
-  <button type="button" class="btn" data-rom-choose>Carregar ROM do computador</button>
-  <button type="button" class="btn poster-actions__external" data-poster-play>Jogar pelo site</button>
-  <small id="rom-help">SNES · .sfc ou .smc · até 16 MB. O arquivo é lido no seu dispositivo.</small>
+  <button type="button" class="btn" data-poster-play>▶ Jogar</button>
+  <small data-game-provider></small>
+  <details class="poster-actions__more" data-rom-options><summary>Outras opções</summary>
+   <button type="button" class="btn" data-rom-choose>Carregar ROM do computador</button>
+   <small id="rom-help">SNES · .sfc ou .smc · até 16 MB. O arquivo é lido no seu dispositivo.</small>
+  </details>
   <p id="rom-error" data-rom-error role="status" aria-live="polite" hidden></p>
   <input type="file" accept=".sfc,.smc" data-rom-file aria-label="Escolher ROM de Super Nintendo" aria-describedby="rom-help rom-error" hidden>
  </section>

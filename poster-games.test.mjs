@@ -23,6 +23,9 @@ test('all four supplied games open from the shared poster inspector without load
    assert.equal(d.querySelector('[data-poster-game-title]').textContent,game.gameTitle);
    assert.equal(d.querySelector('[data-notebook-view="in"] small').textContent,'Maximizar');
    assert.equal(d.querySelector('[data-notebook-view="out"] small').textContent,'Diminuir');
+   assert.equal(d.querySelector('[data-poster-play]').textContent.trim(),'▶ Jogar');
+   assert(!d.querySelector('[data-rom-options]').open,'No local file is required by the primary flow');
+   assert.equal(d.querySelector('[data-game-provider]').textContent,'Jogo via '+game.provider);
    let synchronous=false;player.requestFullscreen=()=>{synchronous=true;return Promise.reject(Error('denied'));};
    d.querySelector('[data-poster-play]').click();assert(synchronous);assert.equal(frame.src,game.embedUrl);assert(!player.hidden);
    await new Promise(r=>setTimeout(r,0));assert.match(d.querySelector('[data-game-status]').textContent,/navegador/);
@@ -49,7 +52,7 @@ test('local ROM validation, secure handoff, retry, replacement and cleanup prese
  try{
   player.requestFullscreen=async()=>{};
   const input=d.querySelector('[data-rom-file]');
-  const choose=file=>{d.querySelector('[data-rom-choose]').click();Object.defineProperty(input,'files',{configurable:true,value:file?[file]:[]});input.dispatchEvent(new w.Event('change'));};
+  const choose=file=>{d.querySelector('[data-rom-options]').open=true;d.querySelector('[data-rom-choose]').click();Object.defineProperty(input,'files',{configurable:true,value:file?[file]:[]});input.dispatchEvent(new w.Event('change'));};
   d.querySelector('[data-room-inspect="poster-mario"]').click();await new Promise(r=>setTimeout(r,10));
   choose(null);assert(!dialog.dataset.playing,'Cancelling leaves the poster open');
   choose(new w.File(['x'],'image.png'));assert.match(d.querySelector('[data-rom-error]').textContent,/\.sfc/);assert.equal(frame.getAttribute('src'),null);
@@ -93,4 +96,14 @@ test('the approved dynamic-code permission is confined to the local emulator pag
  assert(runner.includes("'unsafe-eval'"));assert(runner.includes("form-action 'none'"));
  assert(!fs.readFileSync('src/room-discoveries.html','utf8').includes("'unsafe-eval'"));
  assert(!fs.readFileSync('public/index.html','utf8').includes("'unsafe-eval'"));
+});
+
+test('the original games use published embeds while unavailable Super Mario World retains its existing provider',()=>{
+ for(const id of ['poster-dkc3','poster-turtles','poster-megaman']){
+  const game=games.find(item=>item.id===id);assert.equal(game.provider,'RetroGames.cc');
+  assert.match(game.embedUrl,/^https:\/\/www\.retrogames\.cc\/embed\/\d+-/);
+ }
+ assert.match(games.find(item=>item.id==='poster-turtles').embedUrl,/24621-teenage-mutant-ninja-turtles-iv-turtles-in-time-usa/);
+ assert.match(games.find(item=>item.id==='poster-dkc3').embedUrl,/24602-donkey-kong-country-3-dixie-kong-s-double-trouble-usa-en-fr/);
+ assert.equal(games.find(item=>item.id==='poster-mario').embedUrl,'https://classicgamezone.com/pt/games/super-mario-world');
 });
