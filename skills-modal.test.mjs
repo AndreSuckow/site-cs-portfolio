@@ -33,8 +33,9 @@ function setup(mode='2d'){
 }
 
 test('Sebrae reward shares the skill dialog lifecycle and does not leak into skills',()=>{
+ for(const selector of ['[data-tv="sobre/certification"]','[data-tv="skills/certification"]']){
   for(const mode of ['2d','3d']){
-    const {dom,document,dialog}=setup(mode),button=document.querySelector('[data-certification-open]');
+    const {dom,document,dialog}=setup(mode),button=document.querySelector(selector);
     let opened=0,closed=0;
     document.addEventListener('resume:skill-open',()=>opened++);
     document.addEventListener('resume:skill-close',()=>closed++);
@@ -49,6 +50,7 @@ test('Sebrae reward shares the skill dialog lifecycle and does not leak into ski
     assert.equal(dialog.querySelector('[data-skill-definition]').textContent,details[document.querySelector('.skill-item').textContent.trim()].definition);
     dom.window.close();
   }
+ }
 });
 
 test('all active CS skills open their own explanation and company experiences',()=>{
@@ -120,7 +122,7 @@ test('mouse hover does not leave an attribute description pinned; navigation sti
  const screen=Object.create(window.AttributeScreen.prototype);
  Object.assign(screen,{mode:'tab',tab:'sobre',sel:new Map(),items:profile.stats.map((s,i)=>({id:'sobre/attribute/'+i,kind:'action'})),hoverId:null,selectionSource:null,onSelect:()=>{},assets:{}});
  window.Eh=profile;window.X={};window.descriptions=[];
- for(const name of ['Ev','Q','zS','kv','RS'])window[name]=()=>{};
+ for(const name of ['Ev','Q','zS','kv','RS','Nv'])window[name]=()=>{};
  window.wv=(ctx,text)=>window.descriptions.push(text);
  const drawStart=engine.indexOf('function BS('),drawEnd=engine.indexOf('function csHobbies(',drawStart);
  window.eval(`${engine.slice(drawStart,drawEnd)};window.drawAttributes=BS;`);

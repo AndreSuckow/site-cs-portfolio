@@ -351,3 +351,9 @@ html[data-mode="2d"] .game-nav{display:none}
 .skill-modal[data-reward="certification"] .skill-modal__section,.skill-modal[data-reward="certification"] .skill-modal__intro{display:none}
 @media(max-width:480px){.certification-card{grid-template-columns:1fr;gap:20px;padding:24px 20px}.certification-card__seal{grid-template-columns:64px auto;justify-content:start;gap:16px}.certification-card__seal .certification-medal{width:64px;height:80px}.certification-card__body .btn{width:100%;justify-content:space-between}.certification-reward{padding:24px 16px}}
 @media(forced-colors:active){.certification-card,.certification-reward{border-color:CanvasText;box-shadow:none}}
+.certification-portrait{display:grid;grid-template-columns:48px minmax(0,1fr);align-items:center;gap:14px;width:100%;margin:20px 0 0;padding:18px 14px;border:2px solid var(--amber-400);background:var(--ink-850);color:var(--tv-paper);text-align:left;cursor:pointer}
+.certification-portrait .certification-medal{width:48px;height:60px}
+.certification-portrait__label,.certification-portrait__action{display:block;color:var(--amber-400);font:14px/1.4 'Pixelify Sans',monospace}
+.certification-portrait strong{display:block;font:700 20px/1.35 'Pixelify Sans',monospace;margin:8px 0;overflow-wrap:anywhere}
+.certification-portrait:hover{background:var(--tv-navy);box-shadow:4px 4px 0 var(--ink-600)}
+.certification-portrait:active{transform:translateY(1px)}

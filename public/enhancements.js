@@ -54,7 +54,7 @@ function showSkillDialog(button) {
   skillDialog.querySelector('#skill-dialog-title').focus({preventScroll:true});
 }
 document.querySelectorAll('.skill-item').forEach(button => button.addEventListener('click', () => openSkill(button)));
-document.querySelector('[data-certification-open]')?.addEventListener('click', event => {
+document.querySelectorAll('[data-certification-open]').forEach(button => button.addEventListener('click', event => {
   if(skillDialog.open) return;
   skillDialog.dataset.reward = 'certification';
   skillDialog.querySelector('[data-skill-branch]').textContent = 'Conquista desbloqueada · Certificação';
@@ -62,7 +62,7 @@ document.querySelector('[data-certification-open]')?.addEventListener('click', e
   skillDialog.querySelector('#skill-dialog-description').textContent = 'Certificação do Sebrae em Customer Success, conforme meu currículo.';
   skillDialog.querySelector('[data-certification-reward]').hidden = false;
   showSkillDialog(event.currentTarget);
-});
+}));
 skillDialog.querySelectorAll('[data-skill-close]').forEach(button => button.addEventListener('click', () => skillDialog.close()));
 skillDialog.addEventListener('click', event => {
   if(event.target !== skillDialog) return;
