@@ -357,3 +357,25 @@ html[data-mode="2d"] .game-nav{display:none}
 .certification-portrait strong{display:block;font:700 20px/1.35 'Pixelify Sans',monospace;margin:8px 0;overflow-wrap:anywhere}
 .certification-portrait:hover{background:var(--tv-navy);box-shadow:4px 4px 0 var(--ink-600)}
 .certification-portrait:active{transform:translateY(1px)}
+/* The host toolbar stays outside the embedded game, including in fullscreen. */
+.poster-gallery{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:24px}
+.poster-gallery button{display:flex;flex-direction:column;gap:12px;padding:12px;background:#101725;color:#f4e9d6;border:1px solid #655333;border-radius:5px;text-align:left;cursor:pointer;font:inherit}
+.poster-gallery img{width:100%;height:200px;object-fit:contain;background:#090d16}
+.poster-gallery small{display:block;color:#ffad32;margin-top:6px}
+@media(max-width:700px){.poster-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.poster-gallery img{height:160px}}
+.poster-actions{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:5;text-align:center;width:min(520px,calc(100% - 32px));padding:12px;background:#101725ed;border:1px solid #b17c32;border-radius:6px;color:#f4e9d6}
+.poster-actions[hidden],.poster-game[hidden]{display:none}
+.poster-actions p{margin:0 0 8px;font-size:14px}
+.poster-actions .btn{min-width:160px;min-height:44px;background:#ffad32;color:#17120b;border-color:#ffad32}
+.games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__viewport{inset:64px 0 148px;height:auto}
+.poster-game{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:auto auto minmax(0,1fr);width:100%;height:100%;background:#090d16;color:#f4e9d6}
+.poster-game:fullscreen{width:100vw;height:100dvh}
+.poster-game__toolbar{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));border-bottom:1px solid #9b7134;background:#111a2b}
+.poster-game__toolbar strong{flex:1;font-size:15px}
+.poster-game__toolbar>div{display:flex;gap:8px;flex-wrap:wrap}
+.poster-game__toolbar .btn{min-height:44px;padding:8px 12px;font-size:14px}
+.poster-game__toolbar [data-game-exit]{background:#ffad32;color:#17120b;border-color:#ffad32;flex-shrink:0}
+.poster-game [data-game-status]{margin:0;padding:8px 14px;font-size:13px;background:#172033}
+.poster-game iframe{width:100%;height:100%;min-height:0;border:0;background:#000}
+.games-notebook[data-playing="true"]>:not([data-poster-game]){display:none!important}
+@media(max-width:700px){.poster-game__toolbar{flex-wrap:wrap;gap:8px}.poster-game__toolbar strong{min-width:45%;font-size:13px}.poster-game__toolbar>div{width:100%}.poster-game__toolbar .btn{font-size:12px;padding:8px}.poster-actions{bottom:16px}.poster-actions p{font-size:12px}}

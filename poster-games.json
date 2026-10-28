@@ -1,0 +1,34 @@
+[
+  {
+    "id": "poster-dkc3",
+    "title": "Donkey Kong Country 3",
+    "gameTitle": "Donkey Kong Country 3: Dixie Kong’s Double Trouble",
+    "image": "/img/poster-donkey-kong-country-3.webp",
+    "url": "https://classicgamezone.com/pt/games/donkey-kong-country-3-dixie-kongs-double-trouble",
+    "embedUrl": "https://classicgamezone.com/pt/games/donkey-kong-country-3-dixie-kongs-double-trouble"
+  },
+  {
+    "id": "poster-turtles",
+    "title": "Tartarugas Ninja",
+    "gameTitle": "Teenage Mutant Ninja Turtles IV: Turtles in Time",
+    "image": "/img/poster-turtles-manhattan.webp",
+    "url": "https://classicgamezone.com/pt/games/tmnt-iv-turtles-in-time",
+    "embedUrl": "https://classicgamezone.com/pt/games/tmnt-iv-turtles-in-time"
+  },
+  {
+    "id": "poster-mario",
+    "title": "Super Mario World",
+    "gameTitle": "Super Mario World",
+    "image": "/img/poster-super-mario-world.webp",
+    "url": "https://classicgamezone.com/pt/games/super-mario-world",
+    "embedUrl": "https://classicgamezone.com/pt/games/super-mario-world"
+  },
+  {
+    "id": "poster-megaman",
+    "title": "Mega Man X",
+    "gameTitle": "Mega Man X",
+    "image": "/img/megamanx.webp",
+    "url": "https://www.retrogames.cc/snes-games/megaman-x-usa.html",
+    "embedUrl": "https://www.retrogames.cc/embed/17318-megaman-x-usa.html"
+  }
+]

@@ -28,6 +28,15 @@ test('Portrait prompt appears at TV content and closes on landscape and 2D',asyn
  d.documentElement.dataset.mode='2d';await flush();assert(!d.documentElement.hasAttribute('data-mobile-reading'));
  dom.window.close();
 });
+
+test('rotating during poster inspection or a game keeps the portfolio orientation prompt out of the player',async()=>{
+ const {dom,w,d}=setup();
+ const inspector=d.createElement('dialog');inspector.id='games-notebook';d.body.append(inspector);inspector.showModal();
+ d.documentElement.dataset.chapter='hobbies';await flush();
+ w.dispatchEvent(new w.Event('resize'));assert(!d.querySelector('.mobile-reading').open);
+ inspector.close();assert(d.querySelector('.mobile-reading').open,'The normal TV rotation requirement returns after leaving');
+ dom.window.close();
+});
 test('Desktop is unaffected; portrait 3D cannot bypass rotation',async()=>{
  const desktop=setup({coarse:false});desktop.d.documentElement.dataset.chapter='sobre';await flush();assert(!desktop.d.querySelector('dialog').open);desktop.dom.window.close();
  const {dom,d}=setup();d.documentElement.dataset.chapter='sobre';await flush();

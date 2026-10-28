@@ -20,6 +20,7 @@ function releaseOrientation(){
  if(ownsFullscreen){ownsFullscreen=false;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});}
 }
 function update(){
+ if(document.getElementById('games-notebook')?.open){closePrompt();return;}
  const reading=root.dataset.mode==='3d'&&chapters.has(root.dataset.chapter)&&smallTouch();
  root.toggleAttribute('data-mobile-reading',reading&&landscape());
  if(!reading||landscape()){

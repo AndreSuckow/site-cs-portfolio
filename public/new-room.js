@@ -140,7 +140,16 @@ export function createNewRoom(T){
  box('Family frame foot',0,-.13,-.06,.075,.02,.08,endWood,frame);
  }
  // Pick the visible geometry itself, as with the game cartridges.
- const discoveries=new Map();let highlighted=null;
+ const discoveries=new Map(),posterModels=new Map();let highlighted=null;
+ function poster(id,name,image,x,y,z,width,rotation=[0,0,0]){
+  if(!image)return;
+  const map=new CanvasTexture(image);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
+  const height=width*image.height/image.width,group=new Group();group.name=name;
+  box(name+' paper',0,0,0,width,height,.003,material('#ede3cd'),group);
+  plane(name+' artwork',0,0,.0016,width,height,material('#ffffff',map),[0,0,0],group);
+  group.position.set(x,y,z);group.rotation.set(...rotation);interactive.add(group);
+  discovery(id,group,name+' · examinar em 3D',0);posterModels.set(id,group);
+ }
  function discovery(id,object,label,lift=.014){
   const surfaces=[];
   object.traverse(mesh=>{if(!mesh.isMesh)return;action(mesh,id,label);const clone=mat=>{const copy=mat.clone();rememberPropAppearance(copy);resources.push(copy);surfaces.push(copy);return copy;};mesh.material=Array.isArray(mesh.material)?mesh.material.map(clone):clone(mesh.material);});
@@ -234,14 +243,8 @@ export function createNewRoom(T){
   for(let i=0;i<10;i++)box('Shutter slat',1.5,.71+i*.092,z,.027,.055,.26,oak);
  }
  box('Window center divider',1.515,1.16,-.32,.055,1.1,.035,oak);
- if(T.posterImage){
-  const map=new CanvasTexture(T.posterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
-  plane('Donkey Kong Country 3 poster',-.52,1.58,-1.259,.27,.27*T.posterImage.height/T.posterImage.width,material('#ffffff',map));
- }
- if(T.turtlesPosterImage){
-  const map=new CanvasTexture(T.turtlesPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
-  plane('Turtles III The Manhattan Project poster',-.13,1.64,-1.258,.3,.3*T.turtlesPosterImage.height/T.turtlesPosterImage.width,material('#ffffff',map));
- }
+ poster('poster-dkc3','Donkey Kong Country 3',T.posterImage,-.52,1.58,-1.256,.27);
+ poster('poster-turtles','Tartarugas Ninja',T.turtlesPosterImage,-.13,1.64,-1.255,.3);
  // Small collection above the TV.
  box('TV floating shelf',-.17,1.246,-1.08,.91,.035,.26,darkOak);
  box('Shelf bracket left',-.51,1.19,-1.22,.025,.1,.03,endWood);
@@ -268,14 +271,8 @@ export function createNewRoom(T){
   const z=.5+i*.053,h=.12+random()*.06;box('Book spine',1.42,1.03+h/2,z,.13,h,.043,material(bookColors[i%bookColors.length]));
   box('Book label',1.346,1.03+h*.7,z,.003,.008,.025,material('#d7c8a1'));
  }
- if(T.megaManXPosterImage){
-  const map=new CanvasTexture(T.megaManXPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
-  plane('Mega Man X poster',1.589,1.47,.62,.32,.32*T.megaManXPosterImage.height/T.megaManXPosterImage.width,material('#ffffff',map),[0,-Math.PI/2,0]);
- }
- if(T.marioWorldPosterImage){
-  const map=new CanvasTexture(T.marioWorldPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
-  plane('Super Mario World poster',1.588,1.47,1.09,.3,.3*T.marioWorldPosterImage.height/T.marioWorldPosterImage.width,material('#ffffff',map),[0,-Math.PI/2,0]);
- }
+ poster('poster-megaman','Mega Man X',T.megaManXPosterImage,1.586,1.47,.62,.32,[0,-Math.PI/2,0]);
+ poster('poster-mario','Super Mario World',T.marioWorldPosterImage,1.585,1.47,1.09,.3,[0,-Math.PI/2,0]);
  fan(1.43,1.03,1.17,true);
  cylinder('Mug',-.57,.55,-.91,.032,.072,material('#c5c8ad'));
  // Soft contact shadows supplement the real directional shadows on smaller devices.
@@ -302,6 +299,7 @@ export function createNewRoom(T){
  root.userData={version:'novo-quarto-3d',parts:partCount,batches:batches.size};
  root.add(interactive);
  function getInspectionModel(kind){
+  if(posterModels.has(kind)){const model=posterModels.get(kind).clone(true);model.position.set(0,0,0);model.rotation.set(.05,-.12,0);return model;}
   if(kind==='discman'){const model=discman.root.clone(true);model.rotation.x=discman.root.userData.discmanModel==='sony-d150' ? .9 : Math.PI/2;return model;}
   if(kind==='bible'){const model=bibleObject.clone(true);model.rotation.x=Math.PI/2;return model;}
   if(kind==='pokedex'){const model=pokedex.clone(true);model.rotation.set(.75,0,0);return model;}

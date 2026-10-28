@@ -5,6 +5,13 @@
   <button type="button" data-room-inspect="family" aria-haspopup="dialog" aria-controls="games-notebook">Quadro da família · examinar em 3D</button>
   <button type="button" data-room-notebook aria-haspopup="dialog" aria-controls="games-notebook">Primeira gaveta · caderno de jogos</button>
 </nav>
+<nav class="sr-only room-object-access only-3d" aria-label="Pôsteres do quarto">
+ <button type="button" data-room-inspect="poster-dkc3">Pôster Donkey Kong Country 3</button>
+ <button type="button" data-room-inspect="poster-turtles">Pôster Tartarugas Ninja</button>
+ <button type="button" data-room-inspect="poster-mario">Pôster Super Mario World</button>
+ <button type="button" data-room-inspect="poster-megaman">Pôster Mega Man X</button>
+</nav>
+<script id="poster-games" type="application/json">[]</script>
 <div class="drawer-focus" data-drawer-focus aria-hidden="true" hidden></div>
 <dialog id="games-notebook" class="dialog games-notebook notebook-inspector" aria-labelledby="notebook-title" aria-describedby="notebook-description" data-lenis-prevent>
  <header class="games-notebook__header"><div><p class="eyebrow">Super Nintendo · Minhas aventuras</p><h2 id="notebook-title">Meu caderno de jogos</h2></div><button type="button" class="btn" data-notebook-close>← Voltar</button></header>
@@ -45,5 +52,18 @@
   </ul></section>
  </div>
  </details>
+ <section class="poster-actions" data-poster-actions hidden aria-label="Jogar este pôster">
+  <p data-poster-game-title></p><button type="button" class="btn" data-poster-play>▶ Jogar</button>
+ </section>
+ <section class="poster-game" data-poster-game hidden aria-label="Área de jogo">
+  <header class="poster-game__toolbar">
+   <button type="button" class="btn" data-game-exit>← Sair do jogo</button>
+   <strong data-game-title></strong>
+   <div><button type="button" class="btn" data-game-fullscreen aria-pressed="false">Tela cheia</button><button type="button" class="btn" data-game-retry>Tentar novamente</button><a class="btn" data-game-external target="_blank" rel="noopener noreferrer">Abrir no site ↗</a></div>
+  </header>
+  <p data-game-status role="status" aria-live="polite"></p>
+  <iframe title="Jogo" sandbox="allow-scripts allow-same-origin allow-pointer-lock" allow="autoplay; gamepad; fullscreen 'none'" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+ </section>
 </dialog>
 <script type="module" src="/room-discoveries.js?v=cs-mode-3"></script>
+<script type="module" src="/poster-games.js?v=cs-mode-3"></script>
