@@ -64,7 +64,7 @@ try{
   assert.equal(await evaluate('document.querySelectorAll("[data-notebook-tool],[data-notebook-view=reset],[data-notebook-view=left],[data-notebook-view=right]").length'),0);
  await wait(250);
  assert.equal(await evaluate('document.querySelectorAll(".games-notebook__completed s").length'),4);
- assert.equal(await evaluate('document.querySelectorAll("#games-pending-title + ul li").length'),9);
+ assert.equal(await evaluate('document.querySelectorAll("#games-pending-title + ul li").length'),10);
  fs.writeFileSync(path.join(output,'games-notebook.png'),Buffer.from((await page.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
  const notebookImage=()=>evaluate('document.querySelector("[data-notebook-canvas]").toDataURL()');
  const initialNotebook=await notebookImage();

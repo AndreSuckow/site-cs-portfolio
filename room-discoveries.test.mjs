@@ -77,7 +77,10 @@ test('drawer opens one notebook, preserves the game lists, and restores focus an
  d.dispatchEvent(new w.CustomEvent('room:drawer-opened'));assert(!dialog.open,'Drawer must open before the notebook modal');assert.equal(d.querySelector('[data-drawer-focus]').dataset.phase,'fading');
  d.dispatchEvent(new w.CustomEvent('room:drawer-ready'));assert(dialog.open);assert(d.querySelector('[data-drawer-focus]').hidden);assert.equal(d.activeElement,dialog.querySelector('[data-notebook-close]'));
  assert.equal(dialog.querySelectorAll('.games-notebook__completed s').length,4);
- assert.equal(dialog.querySelectorAll('#games-pending-title + ul li').length,9);
+ assert.equal(dialog.querySelectorAll('#games-pending-title + ul li').length,10);
+ assert([...dialog.querySelectorAll('#games-pending-title + ul li')].some(item=>item.textContent==='Super Mario Kart'));
+ assert(!dialog.querySelector('.games-notebook__completed').textContent.includes('Super Mario Kart'));
+ assert([...dialog.querySelectorAll('.games-notebook__completed s')].some(item=>item.textContent==='Teenage Mutant Ninja Turtles IV: Turtles in Time'));
  assert.equal(dialog.querySelector('.games-notebook__pages > section:first-child').getAttribute('aria-labelledby'),'games-pending-title');
  assert.equal(dialog.querySelector('.games-notebook__pages > section:last-child').getAttribute('aria-labelledby'),'games-completed-title');
  assert(dialog.textContent.includes('Mega Man X'));assert(dialog.textContent.includes('Super Mario RPG'));
