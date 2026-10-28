@@ -8,6 +8,8 @@ O portfólio atual de André Luis Suckow apresenta Customer Success, onboarding,
 
 ## Conteúdo e interação
 
+O pôster de Mega Man X usa a imagem fornecida em `public/img/megamanx.webp` no lugar do Twisted Metal, na parede lateral em x=1.589, y=1.47, z=.62. Mantém largura de .32 e altura derivada da proporção original, sem recorte.
+
 A certificação “SEBRAE – Customer Success: Como conquistar e manter clientes” aparece como uma conquista especial em Skills. No 2D, um cartão âmbar com medalha original em pixel art abre a apresentação do curso. Na TV, a conquista Sebrae recebe contorno âmbar e a ação “Abrir conquista”, acessível também pelo controle. Ambos usam o mesmo diálogo das habilidades, com foco, Escape e suspensão da navegação compartilhados. O curso e o nome vêm do currículo; a apresentação é uma recompensa visual do portfólio, sem imitar um certificado oficial nem acrescentar datas, carga horária ou código de validação.
 
 Em Sobre, a certificação também fica em destaque logo abaixo da foto, do nome e de “Customer Success” na coluna esquerda da TV, sem ocupar o painel de atributos. O cartão compacto âmbar mostra Sebrae, o nome do curso e “Ver conquista”. No 2D, a mesma ação fica abaixo do retrato. Todos os acessos abrem a mesma conquista e devolvem o foco à origem.

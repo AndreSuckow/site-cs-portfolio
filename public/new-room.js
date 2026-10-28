@@ -268,9 +268,9 @@ export function createNewRoom(T){
   const z=.5+i*.053,h=.12+random()*.06;box('Book spine',1.42,1.03+h/2,z,.13,h,.043,material(bookColors[i%bookColors.length]));
   box('Book label',1.346,1.03+h*.7,z,.003,.008,.025,material('#d7c8a1'));
  }
- if(T.twistedMetalPosterImage){
-  const map=new CanvasTexture(T.twistedMetalPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
-  plane('Twisted Metal poster',1.589,1.47,.62,.32,.32*T.twistedMetalPosterImage.height/T.twistedMetalPosterImage.width,material('#ffffff',map),[0,-Math.PI/2,0]);
+ if(T.megaManXPosterImage){
+  const map=new CanvasTexture(T.megaManXPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);
+  plane('Mega Man X poster',1.589,1.47,.62,.32,.32*T.megaManXPosterImage.height/T.megaManXPosterImage.width,material('#ffffff',map),[0,-Math.PI/2,0]);
  }
  if(T.marioWorldPosterImage){
   const map=new CanvasTexture(T.marioWorldPosterImage);map.colorSpace=SRGB;map.anisotropy=4;resources.push(map);

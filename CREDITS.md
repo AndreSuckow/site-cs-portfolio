@@ -10,7 +10,7 @@ Discman Sony D150: modelo fornecido pelo usuário em `public/models/discman_d150
 
 Pôster Super Mario World: arte japonesa de Nintendo, correspondente à composição amarela enviada pelo usuário. Capa plana obtida no [OC ReMix](https://ocremix.org/game/98/super-mario-world-snes), preservada sem recorte em `public/img/poster-super-mario-world.webp`. Arte pertencente à Nintendo.
 
-Pôster Twisted Metal: composição indicada pelo usuário, obtida [nesta referência](https://www.pinterest.com/pin/twisted-metal-1995-in-2025--13862711349984593/) e otimizada em `public/img/poster-twisted-metal.webp`. Arte pertencente aos respectivos titulares, não criada por André.
+Pôster Mega Man X: imagem fornecida pelo usuário em `public/img/megamanx.webp`, substituindo o pôster de Twisted Metal. A capa exibe créditos de Daniel Arseneault e Chamba; arte e personagens pertencem aos respectivos titulares. Imagem preservada sem recorte, com proporção original no quarto.
 
 Pôster Teenage Mutant Ninja Turtles III: The Manhattan Project: arte de Konami e respectivos titulares, correspondente à referência enviada por André; capa frontal obtida no [LaunchBox Games Database](https://gamesdb.launchbox-app.com/games/images/1386-teenage-mutant-ninja-turtles-iii-the-manhattan-project) e salva em `public/img/poster-turtles-manhattan.webp`.
 
