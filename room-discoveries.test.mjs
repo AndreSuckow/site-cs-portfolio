@@ -84,6 +84,8 @@ test('Bible, Pokedex and family share inspection controls, with the reading link
  for(const [kind,title] of [['bible','Bíblia Sagrada'],['pokedex','Pokédex'],['family','Quadro da família']]){
   d.querySelector(`[data-room-inspect="${kind}"]`).click();queue.shift()();assert(dialog.open);assert.equal(dialog.dataset.object,kind);assert.equal(d.getElementById('notebook-title').textContent,title);
   assert.equal(dialog.querySelector('[data-room-bible]').hidden,kind!=='bible');assert(dialog.querySelector('.notebook-inspector__text').hidden);
+  assert.equal(dialog.querySelector('[data-family-credit]').hidden,kind!=='family');
+  if(kind==='family')assert(dialog.querySelector('[data-family-credit]').textContent.includes('3dwstudio'));
   assert(dialog.querySelector('[data-notebook-canvas]').getAttribute('aria-label').includes(title));
   dialog.querySelector('[data-notebook-close]').click();assert(!dialog.open);
  }

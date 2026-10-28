@@ -1,4 +1,5 @@
 import {createDiscman} from "./discman.js?v=cs-mode-3";
+import {createFamilyFrame} from "./family-frame.js?v=cs-mode-3";
 // Novo Quarto 3D — original geometry and textures inspired by André's room reference.
 // The interactive TV and console retain their original world coordinates.
 export function createNewRoom(T){
@@ -119,17 +120,21 @@ export function createNewRoom(T){
  // An original family illustration; no photo or family identity is invented.
  const familyMap=texture((c,w,h)=>{c.fillStyle='#c5c8ac';c.fillRect(0,0,w,h);c.fillStyle='#8b9b7c';c.fillRect(0,h*.7,w,h*.3);for(const [x,y,size,shirt] of [[140,140,1,'#6c8b9a'],[280,135,1,'#c98b74'],[215,225,.65,'#d3b16c']]){c.fillStyle=shirt;c.fillRect(x-42*size,y+40*size,84*size,120*size);c.fillStyle='#c69972';c.beginPath();c.arc(x,y,40*size,0,Math.PI*2);c.fill();c.fillStyle='#514333';c.fillRect(x-40*size,y-32*size,80*size,20*size);}c.fillStyle='#f2e1bc';c.textAlign='center';c.font='bold 24px Georgia';c.fillText('FAMÍLIA',w/2,h-18);},420,380);
  const frame=new Group();frame.name='Family portrait frame';frame.position.set(.94,.64,-1.08);frame.rotation.set(-.12,-.35,0);interactive.add(frame);
+ const importedFrame=T.familyFrameScene?createFamilyFrame(T,familyMap):null;
+ if(importedFrame){frame.add(importedFrame.root);frame.updateMatrixWorld(true);frame.position.y+=.505-new T.Box3().setFromObject(frame).min.y;}
+ else{
  box('Family frame backing',0,0,0,.18,.23,.017,endWood,frame);
  plane('Family illustration',0,0,.009,.152,.20,material('#ffffff',familyMap),[0,0,0],frame);
  box('Family frame stand',0,-.07,-.06,.055,.14,.02,endWood,frame);
  box('Family frame foot',0,-.13,-.06,.075,.02,.08,endWood,frame);
+ }
  // Pick the visible geometry itself, as with the game cartridges.
  const bibleObject=new Group();bibleObject.name='Interactive Bible';interactive.add(bibleObject);
  for(const part of [bible,biblePages,bibleCover])bibleObject.add(part);
  const discoveries=new Map();let highlighted=null;
  function discovery(id,object,label,lift=.014){
   const surfaces=[];
-  object.traverse(mesh=>{if(!mesh.isMesh)return;action(mesh,id,label);mesh.material=mesh.material.clone();resources.push(mesh.material);surfaces.push(mesh.material);});
+  object.traverse(mesh=>{if(!mesh.isMesh)return;action(mesh,id,label);const clone=mat=>{const copy=mat.clone();resources.push(copy);surfaces.push(copy);return copy;};mesh.material=Array.isArray(mesh.material)?mesh.material.map(clone):clone(mesh.material);});
   discoveries.set(id,{object,surfaces,restY:object.position.y,lift});
  }
  discovery('bible',bibleObject,'Bíblia · examinar em 3D · NTLH');
@@ -314,5 +319,5 @@ export function createNewRoom(T){
   if(T.animate&&!reduced)T.animate(musicDrawer.position,{z:open?-.51:-.743,duration:.7,ease:'power3.inOut',overwrite:true,onComplete:open?ready:undefined});else{musicDrawer.position.z=open?-.51:-.743;if(open)ready();}
   if(!open){if(T.animate&&!reduced)T.animate(discman.root.position,{y:discmanRestY,duration:.2,overwrite:true});else discman.root.position.y=discmanRestY;}
  }
- return {root,targets:[...new Set(targets)],highlight,setDiscmanOpen,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;musicSequence++;discman.dispose();for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
+ return {root,targets:[...new Set(targets)],highlight,setDiscmanOpen,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;musicSequence++;discman.dispose();importedFrame?.dispose();for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
 }

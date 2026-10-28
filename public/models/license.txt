@@ -1,0 +1,11 @@
+Model Information:
+* title:	porta retrato
+* source:	https://sketchfab.com/3d-models/porta-retrato-00bfa4e5862d4d4b89f9bcf06d2a19e4
+* author:	3dwstudio (https://sketchfab.com/3dwstudio)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "porta retrato" (https://sketchfab.com/3d-models/porta-retrato-00bfa4e5862d4d4b89f9bcf06d2a19e4) by 3dwstudio (https://sketchfab.com/3dwstudio) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
