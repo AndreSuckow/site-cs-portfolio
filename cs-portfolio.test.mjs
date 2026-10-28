@@ -79,7 +79,7 @@ test('project loading and camera dive wait for the visible cartridge insertion; 
 function bootFixture({webgl=true,deferred=false}={}){
  const dom=new JSDOM(html,{url:'http://localhost:4173/',runScripts:'outside-only'}),w=dom.window;
  w.localStorage.setItem('andre:prefs',JSON.stringify({mode:'2d',sound:false,crt:false}));
- w.matchMedia=()=>({matches:false});w.requestIdleCallback=callback=>callback();
+ w.matchMedia=query=>({matches:query.includes('prefers-reduced-motion')});w.requestIdleCallback=callback=>callback();
  Object.defineProperty(w.document,'readyState',{value:'complete'});
  w.HTMLCanvasElement.prototype.getContext=()=>webgl?{getExtension:()=>({loseContext(){}})}:null;
  let finish;const engine={setActive(){}};w.__engineStart=()=>deferred?new Promise(resolve=>{finish=()=>resolve(engine);}):Promise.resolve(engine);
@@ -87,7 +87,8 @@ function bootFixture({webgl=true,deferred=false}={}){
  w.eval(source);return {dom,w,finish:()=>finish?.()};
 }
 test('every visit starts in 3D despite a saved 2D preference, while manual switching remains available',async()=>{
- const {dom,w}=bootFixture();await new Promise(resolve=>setTimeout(resolve,0));
+ const {dom,w}=bootFixture();for(let i=0;i<100&&w.document.documentElement.hasAttribute('data-site-loading');i++)await new Promise(resolve=>setTimeout(resolve,5));
+ assert(!w.document.documentElement.hasAttribute('data-site-loading'),'Manual navigation begins after the loading reveal');
  assert.equal(w.document.documentElement.dataset.mode,'3d');
  const button=w.document.querySelector('[data-toggle="mode"]');button.click();assert.equal(w.document.documentElement.dataset.mode,'2d');
  button.click();await new Promise(resolve=>setTimeout(resolve,0));assert.equal(w.document.documentElement.dataset.mode,'3d');
