@@ -128,10 +128,10 @@ export function createNewRoom(T){
  plane('Pokeagenda display',0,.014,-.06,.143,.091,material('#ffffff',dexMap),[-Math.PI/2,0,0],deviceLid);
  cylinder('Pokeagenda blue lens',-.067,.015,-.048,.012,.006,material('#52b8dd'),12,pokedex);
  }
- // An original family illustration; no photo or family identity is invented.
- const familyMap=texture((c,w,h)=>{c.fillStyle='#c5c8ac';c.fillRect(0,0,w,h);c.fillStyle='#8b9b7c';c.fillRect(0,h*.7,w,h*.3);for(const [x,y,size,shirt] of [[140,140,1,'#6c8b9a'],[280,135,1,'#c98b74'],[215,225,.65,'#d3b16c']]){c.fillStyle=shirt;c.fillRect(x-42*size,y+40*size,84*size,120*size);c.fillStyle='#c69972';c.beginPath();c.arc(x,y,40*size,0,Math.PI*2);c.fill();c.fillStyle='#514333';c.fillRect(x-40*size,y-32*size,80*size,20*size);}c.fillStyle='#f2e1bc';c.textAlign='center';c.font='bold 24px Georgia';c.fillText('FAMÍLIA',w/2,h-18);},420,380);
+ // The illustration is only a fallback when the supplied portrait cannot load.
+ const familyMap=T.familyFrameScene?null:texture((c,w,h)=>{c.fillStyle='#c5c8ac';c.fillRect(0,0,w,h);c.fillStyle='#8b9b7c';c.fillRect(0,h*.7,w,h*.3);for(const [x,y,size,shirt] of [[140,140,1,'#6c8b9a'],[280,135,1,'#c98b74'],[215,225,.65,'#d3b16c']]){c.fillStyle=shirt;c.fillRect(x-42*size,y+40*size,84*size,120*size);c.fillStyle='#c69972';c.beginPath();c.arc(x,y,40*size,0,Math.PI*2);c.fill();c.fillStyle='#514333';c.fillRect(x-40*size,y-32*size,80*size,20*size);}c.fillStyle='#f2e1bc';c.textAlign='center';c.font='bold 24px Georgia';c.fillText('FAMÍLIA',w/2,h-18);},420,380);
  const frame=new Group();frame.name='Family portrait frame';frame.position.set(.94,.64,-1.08);frame.rotation.set(-.12,-.35,0);interactive.add(frame);
- const importedFrame=T.familyFrameScene?createFamilyFrame(T,familyMap):null;
+ const importedFrame=T.familyFrameScene?createFamilyFrame(T):null;
  if(importedFrame){frame.add(importedFrame.root);frame.updateMatrixWorld(true);frame.position.y+=.505-new T.Box3().setFromObject(frame).min.y;}
  else{
  box('Family frame backing',0,0,0,.18,.23,.017,endWood,frame);

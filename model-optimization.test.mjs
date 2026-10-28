@@ -6,12 +6,27 @@ import {NodeIO} from '@gltf-transform/core';
 import {ALL_EXTENSIONS} from '@gltf-transform/extensions';
 import {loadRoomModels,roomModels} from './public/model-loader.js';
 import {rememberPropAppearance,restorePropAppearance} from './public/imported-props.js';
+import {createFamilyFrame} from './public/family-frame.js';
 
 const source=fs.readFileSync('src/engine.js','utf8'),start=source.indexOf('e_='),end=source.indexOf(',t_=',start);
 // Read with the exact Meshopt decoder shipped by the site, not only the build dependency.
 const decoder=new Function('return '+source.slice(start+3,end))();
 const io=new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({'meshopt.decoder':decoder});
 const manifest=JSON.parse(fs.readFileSync('public/models/optimized/manifest.json','utf8'));
+
+test('portrait integration retains the supplied photo material, UVs and indexed geometry',()=>{
+ const disposed=[];const uv=new Float32Array([.51,.03,.86,.03,.86,.28]);
+ const texture={isTexture:true,dispose(){disposed.push('texture');}},material={map:texture,dispose(){disposed.push('material');}};
+ const geometry={attributes:{uv:{array:uv}},index:{array:new Uint16Array([0,1,2])},dispose(){disposed.push('geometry');}};
+ const mesh={isMesh:true,geometry,material},source={traverse(fn){fn(mesh);},updateMatrixWorld(){},position:{sub(){}}};
+ class Group{constructor(){this.userData={};this.children=[];this.rotation={};this.scale={setScalar(){}};}add(child){this.children.push(child);}}
+ class Vector3{}
+ class Box3{setFromObject(){return this;}getCenter(){return {};}getSize(){return {y:1};}}
+ const frame=createFamilyFrame({Group,Box3,Vector3,familyFrameScene:source});
+ assert.equal(mesh.geometry,geometry);assert.equal(mesh.material,material);assert.equal(mesh.material.map,texture);
+ assert.deepEqual([...uv],[...new Float32Array([.51,.03,.86,.03,.86,.28])]);assert.deepEqual([...geometry.index.array],[0,1,2]);
+ assert.equal(frame.root.userData.familyFrameModel,'3dwstudio');frame.dispose();assert.deepEqual(disposed,['geometry','material','texture']);
+});
 
 test('optimized objects decode with the site runtime and preserve interactive node names',async()=>{
  await decoder.ready;
