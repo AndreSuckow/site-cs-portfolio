@@ -299,7 +299,7 @@ export function createNewRoom(T){
  root.userData={version:'novo-quarto-3d',parts:partCount,batches:batches.size};
  root.add(interactive);
  function getInspectionModel(kind){
-  if(posterModels.has(kind)){const model=posterModels.get(kind).clone(true);model.position.set(0,0,0);model.rotation.set(.05,-.12,0);return model;}
+  if(posterModels.has(kind)){const model=posterModels.get(kind).clone(true);model.position.set(0,0,0);model.rotation.set(0,0,0);return model;}
   if(kind==='discman'){const model=discman.root.clone(true);model.rotation.x=discman.root.userData.discmanModel==='sony-d150' ? .9 : Math.PI/2;return model;}
   if(kind==='bible'){const model=bibleObject.clone(true);model.rotation.x=Math.PI/2;return model;}
   if(kind==='pokedex'){const model=pokedex.clone(true);model.rotation.set(.75,0,0);return model;}

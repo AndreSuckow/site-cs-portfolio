@@ -15,6 +15,8 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  const zoomIn=dialog.querySelector('[data-notebook-view="in"]'),zoomOut=dialog.querySelector('[data-notebook-view="out"]');
  const pointers=new Map(),ray=new Raycaster(),ndc=new Vector2();
  const discman=dialog.dataset.object==='discman';
+ const poster=dialog.dataset.object?.startsWith('poster-');
+ const posterActions=dialog.querySelector('[data-poster-actions]');
  const viewport=canvas.parentElement,controlLayer=dialog.querySelector('[data-model-controls]'),controlHint=dialog.querySelector('[data-model-controls-hint]');
  controlLayer.replaceChildren();controlLayer.hidden=!discman;controlHint.hidden=!discman;
  const inspectionPoints=new Map();
@@ -71,6 +73,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
    if(!mesh.isMesh)return;
    mesh.geometry=mesh.geometry.clone();resources.push(mesh.geometry);
    if(discman){const positions=mesh.geometry.attributes.position,index=mesh.geometry.index,tight=new Box3(),point=new Vector3();for(let i=0;i<(index?index.count:positions.count);i++){point.fromBufferAttribute(positions,index?index.getX(i):i);tight.expandByPoint(point);}mesh.geometry.boundingBox=tight;inspectionPoints.set(mesh.geometry,inspectionBoundsPoints(tight).map(point=>new Vector3(point.x,point.y,point.z)));}
+   if(poster){mesh.geometry.computeBoundingBox();inspectionPoints.set(mesh.geometry,inspectionBoundsPoints(mesh.geometry.boundingBox).map(point=>new Vector3(point.x,point.y,point.z)));}
    const convert=m=>{
     const copy=m.isMeshStandardMaterial?m.clone():material({color:m.color,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:.72,metalness:.04});
     if(m.isMeshStandardMaterial)materials.push(copy);
@@ -150,11 +153,11 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
    if(lidMotion){const t=discmanState.reduced?1:clamp((time-lidMotion.start)/650,0,1);lid.rotation.z=lidMotion.from+(lidMotion.to-lidMotion.from)*(t*t*(3-2*t));if(t===1)lidMotion=null;syncLidButton();}
    for(const {object,rest} of volumeWheels)object.rotation.y=rest+(discmanState.volume-.7)*Math.PI*2;
    if(displayDue){lastDisplay=time;displaySignature=stateSignature;for(const map of displays){drawDiscmanDisplay(map.image,discmanState,time);map.needsUpdate=true;}}
+  }
    if(closeView){
     const r=canvas.getBoundingClientRect(),signature=[book.rotation.x,book.rotation.y,book.rotation.z,lid?.rotation.z,r.width,r.height].join('/');
     if(signature!==boxSignature){boxSignature=signature;book.updateMatrixWorld(true);({distance,viewOffsetX,viewOffsetY}=inspectionPointFrame({width:r.width,height:r.height,points:framePoints(),fov:camera.fov}));}
    }
-  }
   camera.zoom=zoom;
   if(closeView){const r=canvas.getBoundingClientRect();camera.setViewOffset(r.width,r.height,viewOffsetX*zoom,viewOffsetY*zoom,r.width,r.height);}
   camera.position.set(offsetX/zoom,0,distance);camera.far=Math.max(30,distance+radius*3);camera.updateProjectionMatrix();renderer.render(scene,camera);
@@ -165,12 +168,16 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
  function setZoom(value){
   zoom=clampInspectionZoom(value);
   zoomIn.disabled=zoom>=inspectionZoom.max;zoomOut.disabled=zoom<=inspectionZoom.min;
-  zoomIn.title=zoomIn.disabled?'Ampliação máxima atingida':'Ampliar objeto (+)';
+  zoomIn.title=zoomIn.disabled?'Ampliação máxima atingida':poster?'Maximizar pôster':'Ampliar objeto (+)';
   zoomOut.title=zoomOut.disabled?'Redução mínima atingida':'Reduzir objeto (−)';
   schedule();
  }
- function fit(){if(!active)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;closeView=discman;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;if(closeView){offsetX=0;boxSignature='';}else({distance,offsetX}=inspectionLayout({width:r.width,height:r.height,actionsWidth:actions.getBoundingClientRect().width,radius,fov:camera.fov}));schedule();}
- function reset(){if(discman)book.rotation.set(-.82,.04,0);else book.rotation.set(.24,-.46,-.035);setZoom(discman ? .95 : inspectionZoom.initial);}
+ function fit(){
+  if(!active)return;
+  if(poster){const footer=posterActions.getBoundingClientRect();dialog.style.setProperty('--poster-footer-space',Math.max(0,innerHeight-footer.top+16)+'px');}
+  const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;closeView=discman||poster;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;if(closeView){offsetX=0;boxSignature='';}else({distance,offsetX}=inspectionLayout({width:r.width,height:r.height,actionsWidth:actions.getBoundingClientRect().width,radius,fov:camera.fov}));schedule();
+ }
+ function reset(){if(discman)book.rotation.set(-.82,.04,0);else if(poster)book.rotation.set(0,0,0);else book.rotation.set(.24,-.46,-.035);setZoom(discman ? .95 : poster ? .9 : inspectionZoom.initial);}
  function listen(target,event,handler,options){target.addEventListener(event,handler,options);listeners.push(()=>target.removeEventListener(event,handler,options));}
  listen(lidButton,'click',()=>{if(active&&discman)activate('lid');});
  listen(canvas,'animationend',schedule);
@@ -213,9 +220,9 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
   if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')reset();else setZoom(zoom*(e.key==='-'?.85:1.15));}
  });
  for(const button of dialog.querySelectorAll('[data-notebook-view]'))listen(button,'click',()=>{
-  setZoom(zoom*(button.dataset.notebookView==='in'?1.25:1/1.25));
+  setZoom(poster&&button.dataset.notebookView==='in'?inspectionZoom.max:zoom*(button.dataset.notebookView==='in'?1.25:1/1.25));
  });
- const observer=new ResizeObserver(fit);observer.observe(canvas);reset();
+ const observer=new ResizeObserver(fit);observer.observe(canvas);if(poster)observer.observe(posterActions);reset();
  return {
   start(){active=true;canvas.dataset.ready='true';if(lid)canvas.dataset.lid=lidOpen?'open':'closed';reset();fit();},
   stop(){active=false;cancelAnimationFrame(frame);frame=0;for(const id of pointers.keys())if(canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);pointers.clear();canvas.classList.remove('is-held');},

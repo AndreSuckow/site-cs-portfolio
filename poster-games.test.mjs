@@ -21,6 +21,8 @@ test('all four supplied games open from the shared poster inspector without load
    const trigger=d.querySelector(`[data-room-inspect="${game.id}"]`);trigger.focus();trigger.click();await new Promise(r=>setTimeout(r,10));
    assert(dialog.open);assert.equal(dialog.dataset.object,game.id);assert(!d.querySelector('[data-poster-actions]').hidden);
    assert.equal(d.querySelector('[data-poster-game-title]').textContent,game.gameTitle);
+   assert.equal(d.querySelector('[data-notebook-view="in"] small').textContent,'Maximizar');
+   assert.equal(d.querySelector('[data-notebook-view="out"] small').textContent,'Diminuir');
    let synchronous=false;player.requestFullscreen=()=>{synchronous=true;return Promise.reject(Error('denied'));};
    d.querySelector('[data-poster-play]').click();assert(synchronous);assert.equal(frame.src,game.embedUrl);assert(!player.hidden);
    await new Promise(r=>setTimeout(r,0));assert.match(d.querySelector('[data-game-status]').textContent,/navegador/);

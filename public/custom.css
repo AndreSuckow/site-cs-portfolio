@@ -367,7 +367,8 @@ html[data-mode="2d"] .game-nav{display:none}
 .poster-actions[hidden],.poster-game[hidden]{display:none}
 .poster-actions p{margin:0 0 8px;font-size:14px}
 .poster-actions .btn{min-width:160px;min-height:44px;background:#ffad32;color:#17120b;border-color:#ffad32}
-.games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__viewport{inset:64px 0 210px;height:auto}
+.games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__viewport{inset:80px clamp(120px,12vw,176px) var(--poster-footer-space,210px);height:auto;width:auto}
+.games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__actions{top:calc((80px + 100dvh - var(--poster-footer-space,210px))/2)}
 .poster-game{position:fixed;inset:0;z-index:50;display:grid;grid-template-rows:auto auto minmax(0,1fr);width:100%;height:100%;background:#090d16;color:#f4e9d6}
 .poster-game:fullscreen{width:100vw;height:100dvh}
 .poster-game__toolbar{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));border-bottom:1px solid #9b7134;background:#111a2b}
@@ -382,5 +383,10 @@ html[data-mode="2d"] .game-nav{display:none}
 .poster-actions .poster-actions__external{background:transparent;color:var(--amber-400);border-color:var(--ink-600);margin-top:8px}
 .poster-actions [data-rom-error]{margin:8px 0 0;color:#ffb2b2}
 .poster-game__toolbar [hidden]{display:none}
-@media(max-width:540px){.poster-actions .btn{width:100%}.games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__viewport{bottom:265px}}
+@media(max-width:700px){
+ .games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__viewport{inset:88px 16px var(--poster-footer-space,265px)}
+ .games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__actions{top:20px;right:16px;transform:none;width:auto}
+ .games-notebook.notebook-inspector[data-object^="poster-"] .notebook-inspector__tools{flex-direction:row;gap:6px}
+}
+@media(max-width:540px){.poster-actions .btn{width:100%}}
 @media(max-width:700px){.poster-game__toolbar{flex-wrap:wrap;gap:8px}.poster-game__toolbar strong{min-width:45%;font-size:13px}.poster-game__toolbar>div{width:100%}.poster-game__toolbar .btn{font-size:12px;padding:8px}.poster-actions{bottom:16px}.poster-actions p{font-size:12px}}

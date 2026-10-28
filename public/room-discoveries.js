@@ -22,7 +22,7 @@ function openNotebook(kind='notebook'){
  dialog.querySelector('.notebook-inspector__tools').setAttribute('aria-label','Zoom de '+item.label);
  if(game)dialog.querySelector('.eyebrow').textContent='Na parede do quarto · '+game.title;
  const actions={in:'Ampliar',out:'Reduzir'};
- dialog.querySelectorAll('[data-notebook-view]').forEach(button=>button.setAttribute('aria-label',actions[button.dataset.notebookView]+': '+item.label));
+ dialog.querySelectorAll('[data-notebook-view]').forEach(button=>{const name=game?(button.dataset.notebookView==='in'?'Maximizar':'Diminuir'):actions[button.dataset.notebookView];button.setAttribute('aria-label',name+': '+item.label);button.querySelector('small').textContent=name;});
  previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;
  document.dispatchEvent(new CustomEvent('resume:skill-open'));
  document.body.style.overflow='hidden';
