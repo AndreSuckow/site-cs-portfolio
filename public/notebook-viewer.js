@@ -80,7 +80,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
     return copy;
    };
    mesh.material=Array.isArray(mesh.material)?mesh.material.map(convert):convert(mesh.material);
-   if(discman)accelerateInspectionPicking(mesh,Vector3);
+   if(discman||inspection.userData.importedProp)accelerateInspectionPicking(mesh,Vector3);
   });
   book.add(object);object.updateMatrixWorld(true);
   const bounds=discman?visibleBounds(object):new Box3().setFromObject(object),center=bounds.getCenter(new Vector3()),size=bounds.getSize(new Vector3());

@@ -1,5 +1,6 @@
 import {createDiscman} from "./discman.js?v=cs-mode-3";
 import {createFamilyFrame} from "./family-frame.js?v=cs-mode-3";
+import {createImportedProp} from "./imported-props.js?v=cs-mode-3";
 // Novo Quarto 3D — original geometry and textures inspired by André's room reference.
 // The interactive TV and console retain their original world coordinates.
 export function createNewRoom(T){
@@ -101,12 +102,21 @@ export function createNewRoom(T){
  }
  box('Center niche shadow',wx,.97,-1.237,.32,.49,.01,material('#342b20'));
  box('Center niche base',wx,.72,-1,.36,.035,.5,oak);
+ const bibleObject=new Group();bibleObject.name='Interactive Bible';interactive.add(bibleObject);
+ const importedBible=T.bibleScene?createImportedProp(T,T.bibleScene,{id:'holy-bible',name:'Holy Bible · VHM777',span:.20}):null;
+ if(importedBible){bibleObject.userData.importedProp='holy-bible';bibleObject.add(importedBible.root);bibleObject.position.set(wx+.01,0,-.86);bibleObject.updateMatrixWorld(true);bibleObject.position.y=.74-new T.Box3().setFromObject(bibleObject).min.y;}
+ else{
  const bible=box('Holy Bible',wx+.01,.755,-.86,.20,.035,.135,material('#302925'),interactive);action(bible,'bible','Ler a Bíblia Online · NTLH');
  const biblePages=box('Bible gilt pages',wx+.01,.755,-.79,.18,.02,.006,material('#d7c48c'),interactive);
  const bibleMap=texture((c,w,h)=>{c.fillStyle='#241b19';c.fillRect(0,0,w,h);c.strokeStyle='#c6a365';c.lineWidth=6;c.strokeRect(20,20,w-40,h-40);c.fillStyle='#d4b578';c.fillRect(w/2-7,50,14,130);c.fillRect(w/2-43,85,86,14);c.textAlign='center';c.font='bold 48px Georgia';c.fillText('BÍBLIA',w/2,255);c.font='28px Georgia';c.fillText('SAGRADA',w/2,300);},512,384);
  const bibleCover=action(plane('Bible gold cover',wx+.01,.773,-.86,.20,.135,material('#ffffff',bibleMap),[-Math.PI/2,0,0],interactive),'bible','Bíblia · examinar em 3D · NTLH');
+ for(const part of [bible,biblePages,bibleCover])bibleObject.add(part);
+ }
  // Open red pocket encyclopedia, beside the three cartridges.
  const pokedex=new Group();pokedex.name='Pokéagenda';pokedex.position.set(.76,.51,-.84);pokedex.rotation.y=-.14;interactive.add(pokedex);
+ const importedPokedex=T.pokedexScene?createImportedProp(T,T.pokedexScene,{id:'pokedex',name:'Pokedex · chiara.dalfior',span:.22,rotation:[-Math.PI/2,-Math.PI/2,0]}):null;
+ if(importedPokedex){pokedex.userData.importedProp='pokedex';pokedex.add(importedPokedex.root);pokedex.position.y=0;pokedex.updateMatrixWorld(true);pokedex.position.y=.502-new T.Box3().setFromObject(pokedex).min.y;}
+ else{
  const deviceRed=material('#b92c36'),deviceDark=material('#342e39');
  box('Pokeagenda base',0,0,0,.18,.019,.13,deviceRed,pokedex);
  box('Pokeagenda lower screen',-.035,.011,0,.063,.003,.065,material('#87a99a'),pokedex);
@@ -117,6 +127,7 @@ export function createNewRoom(T){
  const dexMap=texture((c,w,h)=>{c.fillStyle='#a3c8b2';c.fillRect(0,0,w,h);c.fillStyle='#263f42';c.font='bold 42px monospace';c.fillText('POKÉAGENDA',22,54);c.font='26px monospace';c.fillText('Nº 025',22,96);c.fillStyle='#e2c74c';c.fillRect(154,107,90,92);c.fillRect(146,82,21,45);c.fillRect(226,82,21,45);c.fillStyle='#263f42';c.fillRect(170,131,10,10);c.fillRect(215,131,10,10);c.fillStyle='#ba4a3a';c.fillRect(160,155,17,13);c.fillRect(220,155,17,13);},400,256);
  plane('Pokeagenda display',0,.014,-.06,.143,.091,material('#ffffff',dexMap),[-Math.PI/2,0,0],deviceLid);
  cylinder('Pokeagenda blue lens',-.067,.015,-.048,.012,.006,material('#52b8dd'),12,pokedex);
+ }
  // An original family illustration; no photo or family identity is invented.
  const familyMap=texture((c,w,h)=>{c.fillStyle='#c5c8ac';c.fillRect(0,0,w,h);c.fillStyle='#8b9b7c';c.fillRect(0,h*.7,w,h*.3);for(const [x,y,size,shirt] of [[140,140,1,'#6c8b9a'],[280,135,1,'#c98b74'],[215,225,.65,'#d3b16c']]){c.fillStyle=shirt;c.fillRect(x-42*size,y+40*size,84*size,120*size);c.fillStyle='#c69972';c.beginPath();c.arc(x,y,40*size,0,Math.PI*2);c.fill();c.fillStyle='#514333';c.fillRect(x-40*size,y-32*size,80*size,20*size);}c.fillStyle='#f2e1bc';c.textAlign='center';c.font='bold 24px Georgia';c.fillText('FAMÍLIA',w/2,h-18);},420,380);
  const frame=new Group();frame.name='Family portrait frame';frame.position.set(.94,.64,-1.08);frame.rotation.set(-.12,-.35,0);interactive.add(frame);
@@ -129,8 +140,6 @@ export function createNewRoom(T){
  box('Family frame foot',0,-.13,-.06,.075,.02,.08,endWood,frame);
  }
  // Pick the visible geometry itself, as with the game cartridges.
- const bibleObject=new Group();bibleObject.name='Interactive Bible';interactive.add(bibleObject);
- for(const part of [bible,biblePages,bibleCover])bibleObject.add(part);
  const discoveries=new Map();let highlighted=null;
  function discovery(id,object,label,lift=.014){
   const surfaces=[];
@@ -294,7 +303,7 @@ export function createNewRoom(T){
  root.add(interactive);
  function getInspectionModel(kind){
   if(kind==='discman'){const model=discman.root.clone(true);model.rotation.x=discman.root.userData.discmanModel==='sony-d150' ? .9 : Math.PI/2;return model;}
-  if(kind==='bible'){const model=new Group();for(const part of [bible,biblePages,bibleCover])model.add(part.clone());model.rotation.x=Math.PI/2;return model;}
+  if(kind==='bible'){const model=bibleObject.clone(true);model.rotation.x=Math.PI/2;return model;}
   if(kind==='pokedex'){const model=pokedex.clone(true);model.rotation.set(.75,0,0);return model;}
   if(kind==='family'){const model=frame.clone(true);model.rotation.set(-.12,0,0);return model;}
   return null;
@@ -319,5 +328,5 @@ export function createNewRoom(T){
   if(T.animate&&!reduced)T.animate(musicDrawer.position,{z:open?-.51:-.743,duration:.7,ease:'power3.inOut',overwrite:true,onComplete:open?ready:undefined});else{musicDrawer.position.z=open?-.51:-.743;if(open)ready();}
   if(!open){if(T.animate&&!reduced)T.animate(discman.root.position,{y:discmanRestY,duration:.2,overwrite:true});else discman.root.position.y=discmanRestY;}
  }
- return {root,targets:[...new Set(targets)],highlight,setDiscmanOpen,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;musicSequence++;discman.dispose();importedFrame?.dispose();for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
+ return {root,targets:[...new Set(targets)],highlight,setDiscmanOpen,getInspectionModel,setDrawerOpen,dispose(){drawerSequence++;musicSequence++;discman.dispose();importedFrame?.dispose();importedBible?.dispose();importedPokedex?.dispose();for(const value of materials.values())value.dispose();for(const resource of resources)resource.dispose();}};
 }

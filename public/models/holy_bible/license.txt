@@ -1,0 +1,11 @@
+Model Information:
+* title:	Holy Bible
+* source:	https://sketchfab.com/3d-models/holy-bible-091e139f26554be4844712ab50f8ad2a
+* author:	VHM777 (https://sketchfab.com/gizacorp01)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Holy Bible" (https://sketchfab.com/3d-models/holy-bible-091e139f26554be4844712ab50f8ad2a) by VHM777 (https://sketchfab.com/gizacorp01) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

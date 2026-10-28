@@ -1,4 +1,4 @@
-// "porta retrato" by 3dwstudio, CC BY 4.0. Original files and license in models/.
+// "porta retrato" by 3dwstudio, CC BY 4.0. Original files and license in models/portrait/.
 // Retain the supplied geometry and replace its sample photograph with our illustration.
 export function createFamilyFrame(T,familyMap){
  const {Group,Material,Box3,Vector3}=T,root=new Group(),source=T.familyFrameScene,resources=new Set();
