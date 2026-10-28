@@ -75,8 +75,9 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
    if(discman){const positions=mesh.geometry.attributes.position,index=mesh.geometry.index,tight=new Box3(),point=new Vector3();for(let i=0;i<(index?index.count:positions.count);i++){point.fromBufferAttribute(positions,index?index.getX(i):i);tight.expandByPoint(point);}mesh.geometry.boundingBox=tight;inspectionPoints.set(mesh.geometry,inspectionBoundsPoints(tight).map(point=>new Vector3(point.x,point.y,point.z)));}
    if(poster){mesh.geometry.computeBoundingBox();inspectionPoints.set(mesh.geometry,inspectionBoundsPoints(mesh.geometry.boundingBox).map(point=>new Vector3(point.x,point.y,point.z)));}
    const convert=m=>{
-    const copy=m.isMeshStandardMaterial?m.clone():material({color:m.color,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:.72,metalness:.04});
-    if(m.isMeshStandardMaterial)materials.push(copy);
+    const clone=m.isMeshStandardMaterial||m.isMeshBasicMaterial;
+    const copy=clone?m.clone():material({color:m.color,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:.72,metalness:.04});
+    if(clone)materials.push(copy);
     restorePropAppearance(copy);
     for(const [key,value] of Object.entries(m))if(value?.isTexture){
      if(!clonedMaps.has(value)){const texture=value.clone();texture.needsUpdate=true;clonedMaps.set(value,texture);resources.push(texture);}
