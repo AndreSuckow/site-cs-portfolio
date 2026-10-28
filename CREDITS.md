@@ -1,5 +1,7 @@
 # Créditos e origem
 
+Versões otimizadas dos quatro objetos importados em `public/models/optimized/`, geradas por `npm run models:optimize`. Os originais, autores e licenças estão preservados nas pastas de cada modelo. Adaptações adicionais: compressão Meshopt, redução e codificação de texturas, remoção de UVs duplicados da Pokédex, cor uniforme do dourado da Bíblia no material e simplificação conservadora de partes estáticas. Nós e pivôs interativos foram preservados.
+
 Bíblia: [“Holy Bible”](https://sketchfab.com/3d-models/holy-bible-091e139f26554be4844712ab50f8ad2a), de [VHM777](https://sketchfab.com/gizacorp01), sob [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), fornecida pelo usuário em `public/models/holy_bible/`. Geometria, materiais PBR, texturas e licença preservados; escala e orientação ajustadas ao nicho e à inspeção. O link de leitura continua apontando para a Bíblia Online NTLH.
 
 Pokédex: [“Pokedex”](https://sketchfab.com/3d-models/pokedex-7097eba74a7b437b9191deaf5dc7203b), de [chiara.dalfior](https://sketchfab.com/chiara.dalfior), sob [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), fornecida pelo usuário em `public/models/pokedex/`. Geometria, materiais, texturas, abertura original e licença preservados; escala e orientação ajustadas à mesa e à inspeção. Ambos os modelos exibem os respectivos créditos na inspeção.

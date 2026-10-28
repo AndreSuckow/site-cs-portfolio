@@ -1,4 +1,11 @@
 import {accelerateInspectionPicking} from './inspection-picking.js?v=cs-mode-3';
+export function rememberPropAppearance(material){
+ if(material.emissive&&!material.userData.roomAppearance)material.userData.roomAppearance={emissive:material.emissive.toArray(),intensity:material.emissiveIntensity};
+}
+export function restorePropAppearance(material){
+ const original=material.userData.roomAppearance;
+ if(original&&material.emissive){material.emissive.fromArray(original.emissive);material.emissiveIntensity=original.intensity;}
+}
 // Preserve the supplied hierarchy, materials and textures; normalize authoring coordinates.
 export function createImportedProp(T,source,{id,name,span,rotation=[0,0,0]}){
  const {Group,Box3,Vector3}=T,root=new Group(),scaled=new Group(),centered=new Group(),oriented=new Group(),resources=new Set();

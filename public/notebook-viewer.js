@@ -1,6 +1,7 @@
 // A tangible notebook: printed pages, page block, back cover and metal spiral.
 // Uses the room engine's Three.js runtime instead of loading a second copy.
 import {drawDiscmanDisplay} from './discman.js?v=cs-mode-3';
+import {restorePropAppearance} from './imported-props.js?v=cs-mode-3';
 import {discmanState} from './discman-player.js?v=cs-mode-3';
 import {accelerateInspectionPicking} from './inspection-picking.js?v=cs-mode-3';
 import {inspectionLayout,inspectionPointFrame,inspectionBoundsPoints,inspectionZoom,clampInspectionZoom} from './inspection-layout.js?v=cs-mode-3';
@@ -73,6 +74,7 @@ export function createNotebookViewer(T,canvas,dialog,inspection=null){
    const convert=m=>{
     const copy=m.isMeshStandardMaterial?m.clone():material({color:m.color,transparent:m.transparent,opacity:m.opacity,side:m.side,roughness:.72,metalness:.04});
     if(m.isMeshStandardMaterial)materials.push(copy);
+    restorePropAppearance(copy);
     for(const [key,value] of Object.entries(m))if(value?.isTexture){
      if(!clonedMaps.has(value)){const texture=value.clone();texture.needsUpdate=true;clonedMaps.set(value,texture);resources.push(texture);}
      copy[key]=clonedMaps.get(value);

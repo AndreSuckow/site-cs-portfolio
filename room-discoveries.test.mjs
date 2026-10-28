@@ -23,8 +23,8 @@ test('cached engines keep loading the imported portrait through its original URL
   item.uri=portrait[key][i].uri;
  });
  assert.deepEqual(legacy,portrait,'Both URLs describe the same supplied model');
- const engine=fs.readFileSync('src/engine.js','utf8');
- assert(engine.includes('./models/portrait/family-frame.gltf?v=cs-mode-3'));
+ const loader=fs.readFileSync('public/model-loader.js','utf8');
+ assert(loader.includes('./models/portrait/family-frame.gltf?v=cs-mode-3'));
 });
 
 test('inspection has only plus/minus manipulation controls and the Bible link in the same side actions',()=>{

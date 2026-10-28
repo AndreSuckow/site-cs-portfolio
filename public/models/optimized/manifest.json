@@ -1,0 +1,88 @@
+{
+  "models": [
+    {
+      "id": "discman",
+      "source": "discman_d150/scene.gltf",
+      "file": "models/optimized/discman.glb",
+      "inputFiles": [
+        "models/discman_d150/scene.gltf",
+        "models/discman_d150/scene.bin",
+        "models/discman_d150/textures/discman_label_laser_yellow_baseColor.png",
+        "models/discman_d150/textures/discman_warning_label_baseColor.png",
+        "models/discman_d150/textures/discman_warning_label_metallicRoughness.png"
+      ],
+      "sourceSha256": "b6588dc6485fa900fe4accc311646bfc2f39698821120c4410ebdda677c3ca77",
+      "optimizedSha256": "fc2e39e498a471d708df80bba14e453890a196917568b7bc7a2a3df020863f16",
+      "originalBytes": 7934674,
+      "optimizedBytes": 1817568,
+      "beforeTriangles": 188972,
+      "afterTriangles": 171886,
+      "removedUVBytes": 0,
+      "originalTexturePixels": 10485760,
+      "texturePixels": 2621440
+    },
+    {
+      "id": "bible",
+      "source": "holy_bible/scene.gltf",
+      "file": "models/optimized/bible.glb",
+      "inputFiles": [
+        "models/holy_bible/scene.gltf",
+        "models/holy_bible/scene.bin",
+        "models/holy_bible/textures/Black_Leather_baseColor.png",
+        "models/holy_bible/textures/gold_paint_baseColor.png",
+        "models/holy_bible/textures/gold_paint_metallicRoughness.png",
+        "models/holy_bible/textures/gold_paint_normal.png"
+      ],
+      "sourceSha256": "8fc1861c6a08d4f043059c4729f14a001f02e4cd09caad4f04fd6e8dbe732b91",
+      "optimizedSha256": "68916e5ba64586ade9d5b238718cfbae227768e7bf18959d0a8e63cb5fe43985",
+      "originalBytes": 7967042,
+      "optimizedBytes": 1065948,
+      "beforeTriangles": 121654,
+      "afterTriangles": 68960,
+      "removedUVBytes": 0,
+      "originalTexturePixels": 13631488,
+      "texturePixels": 589824
+    },
+    {
+      "id": "pokedex",
+      "source": "pokedex/scene.gltf",
+      "file": "models/optimized/pokedex.glb",
+      "inputFiles": [
+        "models/pokedex/scene.gltf",
+        "models/pokedex/scene.bin",
+        "models/pokedex/textures/Material.001_baseColor.png",
+        "models/pokedex/textures/Material.001_metallicRoughness.png",
+        "models/pokedex/textures/Material.001_emissive.png",
+        "models/pokedex/textures/Material.001_normal.png"
+      ],
+      "sourceSha256": "81f89aa6128cf8f5765acb378bf042719df256cfaf139afa38b2b3cd4a534e85",
+      "optimizedSha256": "87c7e9b64234e17d62065305a7b4977409cdb928b9cf77d6f6dbd574f725b005",
+      "originalBytes": 10438014,
+      "optimizedBytes": 2618120,
+      "beforeTriangles": 60060,
+      "afterTriangles": 37476,
+      "removedUVBytes": 1023192,
+      "originalTexturePixels": 16777216,
+      "texturePixels": 7340032
+    },
+    {
+      "id": "portrait",
+      "source": "portrait/family-frame.gltf",
+      "file": "models/optimized/portrait.glb",
+      "inputFiles": [
+        "models/portrait/family-frame.gltf",
+        "models/portrait/scene.bin",
+        "models/portrait/textures/Object006_mtl_diffuse.jpeg"
+      ],
+      "sourceSha256": "fe2a62b4079a5a5f29c426df8ae6c8854ea9e00dfd8c7b3553fe0e98a91e0741",
+      "optimizedSha256": "c09af7f7e80e7d84ea8f32835a44973524fa1a9c80ab7e943fe4efe78f9f2ce7",
+      "originalBytes": 442234,
+      "optimizedBytes": 77276,
+      "beforeTriangles": 660,
+      "afterTriangles": 660,
+      "removedUVBytes": 0,
+      "originalTexturePixels": 1048576,
+      "texturePixels": 262144
+    }
+  ]
+}

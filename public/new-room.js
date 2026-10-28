@@ -1,6 +1,6 @@
 import {createDiscman} from "./discman.js?v=cs-mode-3";
 import {createFamilyFrame} from "./family-frame.js?v=cs-mode-3";
-import {createImportedProp} from "./imported-props.js?v=cs-mode-3";
+import {createImportedProp,rememberPropAppearance,restorePropAppearance} from "./imported-props.js?v=cs-mode-3";
 // Novo Quarto 3D — original geometry and textures inspired by André's room reference.
 // The interactive TV and console retain their original world coordinates.
 export function createNewRoom(T){
@@ -143,7 +143,7 @@ export function createNewRoom(T){
  const discoveries=new Map();let highlighted=null;
  function discovery(id,object,label,lift=.014){
   const surfaces=[];
-  object.traverse(mesh=>{if(!mesh.isMesh)return;action(mesh,id,label);const clone=mat=>{const copy=mat.clone();resources.push(copy);surfaces.push(copy);return copy;};mesh.material=Array.isArray(mesh.material)?mesh.material.map(clone):clone(mesh.material);});
+  object.traverse(mesh=>{if(!mesh.isMesh)return;action(mesh,id,label);const clone=mat=>{const copy=mat.clone();rememberPropAppearance(copy);resources.push(copy);surfaces.push(copy);return copy;};mesh.material=Array.isArray(mesh.material)?mesh.material.map(clone):clone(mesh.material);});
   discoveries.set(id,{object,surfaces,restY:object.position.y,lift});
  }
  discovery('bible',bibleObject,'Bíblia · examinar em 3D · NTLH');
@@ -157,8 +157,8 @@ export function createNewRoom(T){
    const active=key===id,y=item.restY+(active?item.lift:0);
    if(T.animate&&!reduced)T.animate(item.object.position,{y,duration:.2,ease:'power2.out',overwrite:'auto'});else item.object.position.y=y;
    for(const mat of item.surfaces){
-    if(!mat.emissive)continue;mat.emissive.set('#ffb547');
-    if(T.animate&&!reduced)T.animate(mat,{emissiveIntensity:active?.16:0,duration:.2,overwrite:'auto'});else mat.emissiveIntensity=active?.16:0;
+    if(!mat.emissive)continue;if(active){mat.emissive.set('#ffb547');mat.emissiveIntensity=0;}else restorePropAppearance(mat);const intensity=active?.16:(mat.userData.roomAppearance?.intensity??0);
+    if(T.animate&&!reduced)T.animate(mat,{emissiveIntensity:intensity,duration:.2,overwrite:'auto'});else mat.emissiveIntensity=intensity;
    }
   }
  }
