@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 import {JSDOM} from 'jsdom';
 const html=fs.readFileSync('src/room-discoveries.html','utf8');
 test('Discman touch controls follow device changes without reopening the player',()=>{
@@ -13,6 +14,19 @@ test('Discman touch controls follow device changes without reopening the player'
  media.matches=false;media.dispatchEvent(new w.Event('change'));assert.equal(modal.dataset.touchControls,'false');assert.match(d.querySelector('#notebook-description').textContent,/pontos âmbar/);
  media.matches=true;media.dispatchEvent(new w.Event('change'));assert(modal.open);assert.equal(opens,1);assert(!d.querySelector('[data-discman-player]').hidden);assert.equal(modal.dataset.touchControls,'true');dom.window.close();
 });
+test('cached engines keep loading the imported portrait through its original URL',()=>{
+ const root='public/models',legacy=JSON.parse(fs.readFileSync(path.join(root,'family-frame.gltf'),'utf8'));
+ const portrait=JSON.parse(fs.readFileSync(path.join(root,'portrait/family-frame.gltf'),'utf8'));
+ for(const key of ['buffers','images'])legacy[key].forEach((item,i)=>{
+  assert.equal(item.uri,'portrait/'+portrait[key][i].uri);
+  assert(fs.readFileSync(path.join(root,item.uri)).equals(fs.readFileSync(path.join(root,'portrait',portrait[key][i].uri))));
+  item.uri=portrait[key][i].uri;
+ });
+ assert.deepEqual(legacy,portrait,'Both URLs describe the same supplied model');
+ const engine=fs.readFileSync('src/engine.js','utf8');
+ assert(engine.includes('./models/portrait/family-frame.gltf?v=cs-mode-3'));
+});
+
 test('inspection has only plus/minus manipulation controls and the Bible link in the same side actions',()=>{
  const dom=new JSDOM(html),d=dom.window.document;
  assert.deepEqual([...d.querySelectorAll('.notebook-inspector__tools button')].map(button=>button.dataset.notebookView),['in','out']);
