@@ -53,13 +53,18 @@
  </div>
  </details>
  <section class="poster-actions" data-poster-actions hidden aria-label="Jogar este pôster">
-  <p data-poster-game-title></p><button type="button" class="btn" data-poster-play>▶ Jogar</button>
+  <p data-poster-game-title></p>
+  <button type="button" class="btn" data-rom-choose>Carregar ROM do computador</button>
+  <button type="button" class="btn poster-actions__external" data-poster-play>Jogar pelo site</button>
+  <small id="rom-help">SNES · .sfc ou .smc · até 16 MB. O arquivo é lido no seu dispositivo.</small>
+  <p id="rom-error" data-rom-error role="status" aria-live="polite" hidden></p>
+  <input type="file" accept=".sfc,.smc" data-rom-file aria-label="Escolher ROM de Super Nintendo" aria-describedby="rom-help rom-error" hidden>
  </section>
  <section class="poster-game" data-poster-game hidden aria-label="Área de jogo">
   <header class="poster-game__toolbar">
    <button type="button" class="btn" data-game-exit>← Sair do jogo</button>
    <strong data-game-title></strong>
-   <div><button type="button" class="btn" data-game-fullscreen aria-pressed="false">Tela cheia</button><button type="button" class="btn" data-game-retry>Tentar novamente</button><a class="btn" data-game-external target="_blank" rel="noopener noreferrer">Abrir no site ↗</a></div>
+   <div><button type="button" class="btn" data-game-fullscreen aria-pressed="false">Tela cheia</button><button type="button" class="btn" data-rom-choose hidden>Trocar ROM</button><button type="button" class="btn" data-game-retry>Tentar novamente</button><a class="btn" data-game-external target="_blank" rel="noopener noreferrer">Abrir no site ↗</a></div>
   </header>
   <p data-game-status role="status" aria-live="polite"></p>
   <iframe title="Jogo" sandbox="allow-scripts allow-same-origin allow-pointer-lock" allow="autoplay; gamepad; fullscreen 'none'" referrerpolicy="strict-origin-when-cross-origin"></iframe>

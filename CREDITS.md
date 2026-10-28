@@ -36,3 +36,4 @@ Pilgrims Consulting: `public/img/pilgrims-site.png` é uma captura do banner da 
 Logo MarQ HR: SVG fornecido pelo usuário e salvo em `public/img/marqhr-logo.svg`, preservando os traçados originais.
 
 Logo Pilgrims: arquivo oficial da [empresa](https://pilgrimsconsulting.com.br/wp-content/uploads/2023/08/logo-white.webp), usado em `public/img/pilgrims-logo.webp`.
+Emulação de ROM local: [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS), distribuição aberta 4.2.3 carregada sob demanda de `https://cdn.emulatorjs.org/4.2.3/data/`. O portfólio não inclui ROMs; o visitante seleciona seu próprio arquivo temporário no navegador. O núcleo SNES é fornecido pela distribuição do EmulatorJS.
